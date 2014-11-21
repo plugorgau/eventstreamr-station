@@ -5,8 +5,8 @@ use FindBin qw($Bin);
 use lib "$Bin/../lib";
 
 # EventStremr Modules
-use EventStreamr::Utils;
-my $utils = EventStreamr::Utils->new();
+use App::EventStreamr::Utils;
+my $utils = App::EventStreamr::Utils->new();
 
 # Dev
 use Data::Dumper;

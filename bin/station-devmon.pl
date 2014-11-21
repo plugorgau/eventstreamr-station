@@ -9,8 +9,8 @@ use HTTP::Tiny; # libhttp-tiny-perl
 use JSON; # libjson-perl
 
 # Eventstreamr libs
-use EventStreamr::Devices;
-our $devices = EventStreamr::Devices->new();
+use App::EventStreamr::Devices;
+our $devices = App::EventStreamr::Devices->new();
 
 my $log = File::Tail->new(name => "/var/log/syslog", maxinterval=>1, );
 

@@ -1,4 +1,4 @@
-package EventStreamr::Devices;
+package App::EventStreamr::Devices;
 use Moo; # libmoo-perl
 use Cwd 'realpath';
 use File::Slurp 'read_file'; #libfile-slurp-perl

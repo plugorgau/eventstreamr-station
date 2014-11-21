@@ -1,8 +1,8 @@
-package EventStreamr::Utils;
+package App::EventStreamr::Utils;
 use Moo;
 use IO::Socket::INET; # System Class
 use Proc::ProcessTable; # libproc-processtable-perl
-use feature 'switch';
+use experimental 'switch';
 use Data::Dumper;
 
 sub test {

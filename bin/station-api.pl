@@ -18,8 +18,8 @@ unless ( config->{environment} eq 'production' ) {
 }
 
 # EventStreamr Modules
-use EventStreamr::Devices;
-our $devices = EventStreamr::Devices->new();
+use App::EventStreamr::Devices;
+our $devices = App::EventStreamr::Devices->new();
 
 # API Data
 our $self;

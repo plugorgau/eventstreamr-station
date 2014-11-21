@@ -69,10 +69,10 @@ if ( $DAEMON ) {
 umask 0027;
 
 # EventStremr Modules
-use EventStreamr::Devices;
-our $devices = EventStreamr::Devices->new();
-use EventStreamr::Utils;
-our $utils = EventStreamr::Utils->new();
+use App::EventStreamr::Devices;
+our $devices = App::EventStreamr::Devices->new();
+use App::EventStreamr::Utils;
+our $utils = App::EventStreamr::Utils->new();
 
 # Load/Build Local Config
 my $localconfig;
