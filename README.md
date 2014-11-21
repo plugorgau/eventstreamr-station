@@ -1,3 +1,5 @@
+NOTE: This repository is in a state of flux. It's being cleaned up for a re-factor.
+
 eventstreamr
 ============
 
