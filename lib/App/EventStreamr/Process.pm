@@ -3,7 +3,9 @@ package App::EventStreamr::Process;
 use v5.010;
 use strict;
 use warnings;
-use Method::Signatures;
+use Method::Signatures; # libmethod-signatures-perl
+use Proc::Daemon; # libproc-daemon-perl
+use Proc::ProcessTable; # libproc-processtable-perl
 
 use Moo::Role;
 
@@ -13,7 +15,7 @@ use Moo::Role;
 
 =head1 SYNOPSIS
 
-  This class shouldn't be directly instantiated.
+  This is a role and  shouldn't be directly instantiated.
 
 =head1 DESCRIPTION
 
@@ -22,6 +24,35 @@ use Moo::Role;
 
 =cut
 
-requires 'config';
+requires 'state','command','id','config';
+
+has 'pid' => ( is => 'rw', lazy => 1, builder => 1 );
+
+method _build_pid() {
+  my $pt = Proc::ProcessTable->new;
+  my @procs = grep { $_->cmndline =~ /$self->{command}/ } @{ $pt->table };
+
+  if (@procs) {
+    $self->{state}{$self->{id}}{pid} = $procs[0]->pid;
+    $self->{state}{$self->{id}}{running} = 1;
+    return $self->{state}{$self->{id}}{pid};
+  } else {
+    $self->{state}{$self->{id}}{running} = 0;
+    return 0;
+  }
+}
+
+method start() {
+  my %proc_opts = ( exec_command => $self->{command} );
+  
+  Proc::Daemon->Init( \%proc_opts );
+  $self->{state}{$self->{id}}{timestamp} = time;
+}
+
+method running() {
+
+}
+
+
 
 1;
