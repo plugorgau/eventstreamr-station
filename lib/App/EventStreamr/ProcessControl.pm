@@ -26,7 +26,7 @@ use Moo::Role;
 
 requires 'status','command','id','config';
 
-has 'pid' => ( is => 'rw', lazy => 1, builder => 1 );
+has 'pid' => ( is => 'rw', lazy => 1, builder => 1, clearer => 'clear_pid' );
 
 method _build_pid() {
   my $pt = Proc::ProcessTable->new;
@@ -43,32 +43,37 @@ method _build_pid() {
 }
 
 method start() {
-  my %proc_opts = ( exec_command => $self->{command} );
-  
-  Proc::Daemon->Init( \%proc_opts );
+  my %proc_opts = ( exec_command => $self->command );
+ 
+  #XXX: Proc::Daemon will exit parent in Void 
+  my $state = Proc::Daemon::Init( \%proc_opts );
   $self->{status}{$self->{id}}{timestamp} = time;
   $self->{status}{$self->{id}}{runcount} = $self->{status}{$self->{id}}{runcount} ? $self->{status}{$self->{id}}{runcount} + 1 : 1;
 }
 
 method stop() {
   if ($self->pid) {
-    Proc::Daemon->Kill_Daemon($self->{pid});
+    kill 9, $self->pid;
     $self->{status}{$self->{id}}{timestamp} = undef;
     $self->{status}{$self->{id}}{running} = 0;
-    $self->{pid} = undef;
+    $self->{status}{$self->{id}}{pid} = undef;
+    $self->clear_pid;
     return 1;
   }
+  return 0;
 }
 
 method running() {
-  if (kill 0, $self->pid) {
+  #TODO: 0 is false, but it's also a valid process. Re-work the logic here.
+  if ( ! $self->pid ) {
+
+  } elsif ( kill 0, $self->pid ) {
     return 1; 
-  } else {
-    $self->{status}{$self->{id}}{timestamp} = undef;
-    $self->{status}{$self->{id}}{running} = 0;
-    $self->{pid} = undef;
-    return 0;
   }
+  $self->{status}{$self->{id}}{timestamp} = undef;
+  $self->{status}{$self->{id}}{running} = 0;
+  $self->clear_pid;
+  return 0;
 }
 
 1;
