@@ -3,11 +3,11 @@ package App::EventStreamr::ProcessControl;
 use v5.010;
 use strict;
 use warnings;
-use Method::Signatures; # libmethod-signatures-perl
+use Method::Signatures 20140224; # libmethod-signatures-perl
 use Proc::Daemon; # libproc-daemon-perl
 use Proc::ProcessTable; # libproc-processtable-perl
 
-use Moo::Role;
+use Moo::Role; # libmoo-perl
 
 # ABSTRACT: A process role
 
@@ -15,63 +15,85 @@ use Moo::Role;
 
 =head1 SYNOPSIS
 
-  This is a role and  shouldn't be directly instantiated.
+This is a role that provides 'start', 'stop' and 'running' methods.
 
 =head1 DESCRIPTION
 
-  This is a Role that can be consumed to provide process operations
-  used throughout EventStreamr.
+This is a Role that can be consumed to provide process operations
+used throughout EventStreamr.
+
+It requires a 'cmd' attribute and will utilise an optional 
+'cmd_regex' if one exists.
 
 =cut
 
-requires 'status','command','id','config';
+requires 'cmd';
 
 has 'pid' => ( is => 'rw', lazy => 1, builder => 1, clearer => 'clear_pid' );
 
 method _build_pid() {
   my $pt = Proc::ProcessTable->new;
-  my @procs = grep { $_->cmndline =~ /$self->{command}/ } @{ $pt->table };
+
+  # Sometimes our processes report a different command than
+  # how they were started. Also they often spawn a new detached
+  # process, so we can't grab the pid from Proc::Daemon::Init.
+  my $regex = $self->cmd_regex ? $self->cmd_regex : $self->cmd;
+  my @procs = grep { $_->cmndline =~ /$regex/ } @{ $pt->table };
 
   if (@procs) {
-    $self->{status}{$self->{id}}{pid} = $procs[0]->pid;
-    $self->{status}{$self->{id}}{running} = 1;
-    return $self->{status}{$self->{id}}{pid};
+    return $procs[0]->pid;
   } else {
-    $self->{status}{$self->{id}}{running} = 0;
     return 0;
   }
 }
 
+=method start
+  
+  $proc->start;
+
+Forks the command and returns.
+
+=cut
+
 method start() {
-  my %proc_opts = ( exec_command => $self->command );
+  my %proc_opts = ( exec_command => $self->cmd );
  
-  #XXX: Proc::Daemon will exit parent in Void 
+  # Proc::Daemon will exit parent when started  in Void
   my $state = Proc::Daemon::Init( \%proc_opts );
-  $self->{status}{$self->{id}}{timestamp} = time;
-  $self->{status}{$self->{id}}{runcount} = $self->{status}{$self->{id}}{runcount} ? $self->{status}{$self->{id}}{runcount} + 1 : 1;
 }
+
+=method stop
+
+  $proc->stop;
+
+Stops the running process if it is found.
+
+=cut
 
 method stop() {
   if ($self->pid) {
     kill 9, $self->pid;
-    $self->{status}{$self->{id}}{timestamp} = undef;
-    $self->{status}{$self->{id}}{running} = 0;
-    $self->{status}{$self->{id}}{pid} = undef;
     $self->clear_pid;
     return 1;
   }
   return 0;
 }
 
+=method running
+
+  $proc->running;
+
+Returns 1 if running, 0 if not.
+
+=cut
+
 method running() {
-  #TODO: 0 is false, but it's also a valid process. Re-work the logic here.
+  #TODO: pid 0 returns true. Should rework the logic here.
   if ( ! $self->pid ) {
 
   } elsif ( kill 0, $self->pid ) {
     return 1; 
   }
-  $self->{status}{$self->{id}}{timestamp} = undef;
-  $self->{status}{$self->{id}}{running} = 0;
   $self->clear_pid;
   return 0;
 }
