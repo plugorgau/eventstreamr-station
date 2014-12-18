@@ -2,18 +2,15 @@
 
 use strict;
 use lib "t/lib";
-use Test::More tests => 5;
+use Test::More;
 use Test::App::EventStreamr::Process;
 use App::EventStreamr::Status;
-
-#TODO: Add 'no_end_test' due to Double END Block issue
-use Test::Warnings ':no_end_test';
+use Test::App::EventStreamr::ProcessTest;
 
 my $command = 'ping 127.0.0.1';
 my $id = 'ping';
 my $status = App::EventStreamr::Status->new();
 
-# TODO: Instantiate proper object once config is completed
 my $config = {
   run => 1, 
   control => {
@@ -31,52 +28,10 @@ my $proc = Test::App::EventStreamr::Process->new(
   status => $status,
 );
 
-subtest 'Instantiation' => sub {
-  can_ok($proc, qw(start running stop run_stop));
-};
+Test::App::EventStreamr::ProcessTest->new(
+  process => $proc,
+  config => $config,
+  id => $id,
+)->run_tests();
 
-subtest 'Run Stop Starting' => sub {
-  $proc->run_stop();
-
-  is($proc->running, 1, "Process was Started");
-};
-
-$config->{control}{ping}{run} = 2;
-
-subtest 'Run Stop Process Restarting' => sub {
-  is($proc->_restart, 1, "Process Expected to Restart");
-  $proc->run_stop();
-
-  is($proc->running, 0, "Process was Stopped");
-  
-  $proc->run_stop();
-  $proc->run_stop();
-
-  is($proc->running, 1, "Process was Started");
-};
-
-$config->{run} = 2;
-
-subtest 'Run Stop System Restarting' => sub {
-  is($proc->_restart, 1, "Process Expected to Restart");
-  $proc->run_stop();
-
-  is($proc->running, 0, "Process was Stopped");
-  
-  $proc->run_stop();
-  
-  $config->{run} = 1;
-  
-  $proc->run_stop();
-
-  is($proc->running, 1, "Process was Started");
-};
-
-$config->{control}{ping}{run} = 0;
-
-subtest 'Run Stop Stopping' => sub {
-  $proc->run_stop();
-
-  is($proc->running, 0, "Process was Stopped");
-};
-
+done_testing();
