@@ -83,6 +83,9 @@ method run_stop() {
     } else {
       $self->status->stopping($self->{id});
       $self->stop();
+    
+      # Give the process time to settle.
+      sleep $self->sleep_time;
     }
 
   } elsif ( $self->_run && ! $self->pid) {
@@ -93,14 +96,18 @@ method run_stop() {
     $self->status->starting($self->{id},$self->{type});
 
     $self->start();
+  
+    # Give the process time to settle.
+    sleep $self->sleep_time;
   } elsif ( (! $self->_run && $self->pid ) ) {
     $self->status->stopping($self->{id});
 
     $self->stop();
+
+    # Give the process time to settle.
+    sleep $self->sleep_time;
   }
   
-  # Give the process time to settle.
-  sleep $self->sleep_time;
 
   # TODO: Post config if changed
   $self->status->set_state($self->running,$self->{id});
