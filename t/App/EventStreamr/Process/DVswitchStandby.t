@@ -2,6 +2,7 @@
 
 use strict;
 use lib "t/lib";
+use FindBin qw($Bin);
 use Test::More;
 use App::EventStreamr::Process::DVswitch;
 use App::EventStreamr::Process::DVswitchStandby;
@@ -23,7 +24,7 @@ my $config = {
   mixer => {
     host => '127.0.0.1',
     port => 1234,
-    loop => 't/data/Test.dv',
+    loop => "$Bin/../../../data/Test.dv",
   },
 };
 bless $config, "App::EventStreamr::Config";

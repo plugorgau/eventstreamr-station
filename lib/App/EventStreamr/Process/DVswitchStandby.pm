@@ -34,7 +34,6 @@ method _build_cmd() {
   );
 
   $command =~ s/\$(\w+)/$cmd_vars{$1}/g;
-  print "$command\n";
   return $command;
 }
 
