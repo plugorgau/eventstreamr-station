@@ -63,11 +63,11 @@ method set_state($state,$id) {
   return 0;
 }
 
-method threshold($id) {
+method threshold($id,$status = "failed") {
   my $age = $self->{status}{$id}{timestamp} ? time - $self->{status}{$id}{timestamp} : 0;
   if ( defined $self->{status}{$id}{runcount} && 
   ($self->{status}{$id}{runcount} > 5 && (time % 10) != 0) ) {
-    $self->{status}{$id}{status} = "failed";
+    $self->{status}{$id}{status} = $status;
     $self->{status}{$id}{state} = "hard";
     # TODO: Logging here once log role exists
     #("$id failed to start (count=$self->{device_control}{$device->{id}}{runcount}, died=$age secs ago)");
