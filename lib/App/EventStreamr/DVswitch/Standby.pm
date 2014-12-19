@@ -1,4 +1,4 @@
-package App::EventStreamr::Process::DVswitchStandby;
+package App::EventStreamr::DVswitch::Standby;
 use Method::Signatures;
 use Moo;
 use namespace::clean;

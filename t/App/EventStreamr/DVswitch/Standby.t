@@ -2,8 +2,10 @@
 
 use strict;
 use lib "t/lib";
+use FindBin qw($Bin);
 use Test::More;
-use App::EventStreamr::Process::DVswitch;
+use App::EventStreamr::DVswitch::Mixer;
+use App::EventStreamr::DVswitch::Standby;
 use App::EventStreamr::Status;
 use Test::App::EventStreamr::ProcessTest;
 
@@ -15,28 +17,41 @@ my $status = App::EventStreamr::Status->new();
 my $config = {
   run => 1, 
   control => {
-    dvswitch => {
+    dvfile => {
       run => 1,
     },
   },
   mixer => {
+    host => '127.0.0.1',
     port => 1234,
+    loop => "$Bin/../../../data/Test.dv",
   },
 };
 bless $config, "App::EventStreamr::Config";
 
-my $proc = App::EventStreamr::Process::DVswitch->new(
+my $dvswitch = App::EventStreamr::DVswitch::Mixer->new(
   config => $config,
   status => $status,
 );
 
+my $proc = App::EventStreamr::DVswitch::Standby->new(
+  config => $config,
+  status => $status,
+);
+
+
 SKIP: {
-  skip "DVswitch not installed", 5, unless ( -e "/usr/bin/dvswitch" );
+  skip "DVswitch||DVsource not installed", 5, unless ( -e "/usr/bin/dvswitch" && -e "/usr/bin/dvsource-file" );
+  
+  $dvswitch->start();
+
   Test::App::EventStreamr::ProcessTest->new(
     process => $proc,
     config => $config,
-    id => 'dvswitch',
+    id => 'dvfile',
   )->run_tests();
+
+  $dvswitch->stop();
 }
 
 done_testing();

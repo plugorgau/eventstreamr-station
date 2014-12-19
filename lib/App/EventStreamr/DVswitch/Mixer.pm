@@ -1,4 +1,4 @@
-package App::EventStreamr::Process::DVswitch;
+package App::EventStreamr::DVswitch::Mixer;
 use Method::Signatures;
 use Moo;
 use namespace::clean;
