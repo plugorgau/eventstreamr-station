@@ -114,6 +114,6 @@ method run_stop() {
   return;
 }
 
-with('App::EventStreamr::ProcessControl');
+with('App::EventStreamr::Roles::ProcessControl');
 
 1;
