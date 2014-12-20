@@ -25,7 +25,7 @@ my $config = {
 };
 bless $config, "App::EventStreamr::Config";
 
-my $proc = Test::App::EventStreamr::Process->new(
+my $proc = Test::App::EventStreamr::Record->new(
   cmd => $command,
   id => $id,
   config => $config,
@@ -34,7 +34,7 @@ my $proc = Test::App::EventStreamr::Process->new(
 
 $proc->run_stop();
 
-is( (-d $staus->{$id}{record_path}),1 ,"Record Path Created" );
+is( (-d $status->{$id}{record_path}),1 ,"Record Path Created" );
 
 $proc->stop();
 

@@ -1,4 +1,4 @@
-package App::EventStreamr::Roles::ProcessControl;
+package App::EventStreamr::Roles::Record;
 
 use v5.010;
 use strict;
