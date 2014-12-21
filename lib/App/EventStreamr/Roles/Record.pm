@@ -4,7 +4,8 @@ use v5.010;
 use strict;
 use warnings;
 use Method::Signatures 20140224; # libmethod-signatures-perl
-use Proc::Daemon; # libproc-daemon-perl
+use POSIX 'strftime';
+use File::Path 'make_path';
 use Proc::ProcessTable; # libproc-processtable-perl
 
 use Moo::Role; # libmoo-perl
@@ -27,25 +28,46 @@ by processes that extend L<App::EventStreamr::Process>.
 
 =cut
 
-requires 'run_stop','status','config';
+requires 'run_stop','status','config','id','type';
 
-has 'record_path'         => ( is => 'ro', lazy => 1, builder => 1 );
 
-method _build_record_path() {
-  my $command = $self->{config}{commands}{dvswitch} ? $self->{config}{commands}{dvswitch} : 'dvswitch -h 0.0.0.0 -p $port';
+method _record_path() {
+  if ( ! defined $self->{status}{$self->{id}}{date} || $self->{status}{$self->{id}}{date} != strftime "%Y%m%d", localtime ) {
+    $self->{status}{$self->{id}}{date} = strftime "%Y%m%d", localtime;
   
-  my %cmd_vars =  (
-    port    => $self->{config}{mixer}{port},
-  );
+    $self->{status}{$self->{id}}{record_path} = $self->{config}{record_path};
 
-  $command =~ s/\$(\w+)/$cmd_vars{$1}/g;
-  return $command;
+    my %cmd_vars =  (
+      room    => $self->{config}{room}, 
+      date    => $self->{status}{$self->{id}}{date},
+    );
+
+    $self->{status}{$self->{id}}{record_path} =~ s/\$(\w+)/$cmd_vars{$1}/g;
+  } 
+  
+  my $result;
+  if ( ! -d "$self->{status}{$self->{id}}{record_path}" ) {
+    $self->status->starting($self->{id},$self->{type});
+    $result = eval { make_path("$self->{status}{$self->{id}}{record_path}") };
+    #TODO: Logging
+  } else {
+    # TODO: We should check if the path is still writeable.
+    # We had a failed disk cause some issues at LCA2014.
+    $result = 1;
+  }
+
+  return $result; 
 }
 
 around 'run_stop' => sub {
   my $orig = shift;
   my $self = shift;
-  $orig->();
+  
+  if ( $self->_record_path() ) {
+    $orig->($self);
+  } else {
+    $self->status->threshold($self->{id},'not_writeable');
+  }
 };
 
 1;
