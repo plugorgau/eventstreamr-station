@@ -47,6 +47,8 @@ method _run() {
   # attriubute makes things look a little cleaner.
   my $run = defined $self->{config}{control}{$self->{id}}{run} ? $self->{config}{control}{$self->{id}}{run} : 1;
 
+  $self->{config}{control}{$self->{id}}{run} = $run;
+  
   # We only want to run if both the process is set to run
   # and the system is set to run.
   if ($run && $self->{config}{run}) {

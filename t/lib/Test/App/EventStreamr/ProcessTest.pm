@@ -1,5 +1,5 @@
 package Test::App::EventStreamr::ProcessTest;
-use Test::More tests => 5;
+use Test::More;
 use Method::Signatures;
 use Moo;
 use namespace::clean;

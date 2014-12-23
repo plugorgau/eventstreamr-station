@@ -27,7 +27,7 @@ has 'status' => ( is => 'rw' );
 
 method starting($id,$type) {
   # TODO: Logging here once log role exists
-  $self->{status}{$id}{runcount} = $self->{status}{$id}{runcount} ? $self->{status}{$id}{runcount}++ : 0;
+  $self->{status}{$id}{runcount} = $self->{status}{$id}{runcount} ? $self->{status}{$id}{runcount} + 1 : 1;
   $self->{status}{$id}{running} = 0;
   $self->{status}{$id}{status} = "starting";
   $self->{status}{$id}{state} = "soft";
@@ -50,7 +50,8 @@ method restarting($id) {
 }
 
 method set_state($state,$id) {
-  if ($self->{status}{$id}{running} != $state) {
+  if (defined $self->{status}{$id}{running} &&
+      $self->{status}{$id}{running} != $state) {
     # TODO: Logging here once log role exists
     $self->{status}{$id}{runcount} = 0;
     $self->{status}{$id}{running} = $state;
