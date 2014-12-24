@@ -2,7 +2,6 @@ package App::EventStreamr::Config;
 use Method::Signatures;
 use Sys::Hostname;
 use experimental 'say';
-use JSON; # libjson-perl
 use Config::JSON; # libconfig-json-perl
 use File::Path qw(make_path);
 use Carp 'croak';
@@ -63,13 +62,21 @@ method _build_macaddress() {
   return $macaddress;
 }
 
+method _create_config_path() {
+  make_path($self->config_path) if ( ! -d $self->config_path ) or
+    croak "Couldn't create config path $self->{config_path}";
+}
+
 method _build_localconfig() {
+  # Config JSON barfs if you try to load a config that doesn't exist,
+  # this will load one or attempt to create it.
+
   if ( -e $self->config_file ) {
     return Config::JSON->new($self->config_file);
   } else {
-    make_path($self->config_path) if ( ! -d $self->config_path ) or
-      croak "Couldn't create config path $self->{config_path}";
+    $self->_create_config_path();
     my $config = Config::JSON->create($self->config_file);
+
     $config->{config} = {
       nickname => $self->nickname,
       room => $self->room,
@@ -99,7 +106,7 @@ Will write the config out to disk.
 method write_config() {
   # TODO: There has to be a better way..
   foreach my $key (keys %{$self}) {
-    if ( $key !~ /macaddress|localconfig/ ) {
+    if ( $key !~ /macaddress|localconfig|http|controller/ ) {
       $self->localconfig->{config}{$key} = $self->{$key};
     }
   }
@@ -137,5 +144,7 @@ method prompt($question,:$default) { # inspired from here: http://alvinalexander
     return $_;
   }
 }
+
+with('App::EventStreamr::Roles::ConfigAPI');
 
 1;
