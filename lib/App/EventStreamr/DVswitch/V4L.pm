@@ -45,7 +45,7 @@ method _build_cmd() {
 }
 
 method _build_cmd_regex() {
-  return "[ffmpeg|avconv].+\\/dev\\/$self->{id}.*";
+  return qr:^[ffmpeg|avconv].+/dev/$self->{id}.*:;
 }
 
 1;
