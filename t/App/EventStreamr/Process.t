@@ -18,6 +18,7 @@ my $config = {
       run => 1,
     },
   },
+  write_config => sub { },
 };
 bless $config, "App::EventStreamr::Config";
 

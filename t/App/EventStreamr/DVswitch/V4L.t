@@ -25,6 +25,7 @@ my $config = {
     host => '127.0.0.1',
     port => 1234,
   },
+  write_config => sub { },
 };
 bless $config, "App::EventStreamr::Config";
 
