@@ -111,8 +111,10 @@ method run_stop() {
   }
   
 
-  # TODO: Post config if changed
-  $self->status->set_state($self->running,$self->{id});
+  # Write config on state change.
+  if ( $self->status->set_state($self->running,$self->{id}) ) {
+    $self->config->write_config();
+  }
   return;
 }
 
