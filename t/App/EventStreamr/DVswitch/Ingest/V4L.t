@@ -5,7 +5,7 @@ use lib "t/lib";
 use FindBin qw($Bin);
 use Test::More;
 use App::EventStreamr::DVswitch::Mixer;
-use App::EventStreamr::DVswitch::V4L;
+use App::EventStreamr::DVswitch::Ingest::V4L;
 use App::EventStreamr::Status;
 use Test::App::EventStreamr::ProcessTest;
 
@@ -34,7 +34,7 @@ my $dvswitch = App::EventStreamr::DVswitch::Mixer->new(
   status => $status,
 );
 
-my $proc = App::EventStreamr::DVswitch::V4L->new(
+my $proc = App::EventStreamr::DVswitch::Ingest::V4L->new(
   config => $config,
   status => $status,
   id => 'video0',
