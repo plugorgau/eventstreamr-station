@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# PODNAME: dvsource_fw_tally.sh
+
 # Filter for output of dvsource-firewire -t.
 # Requires a serial device with an LED between DTR and GND.
 

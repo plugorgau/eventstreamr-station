@@ -6,6 +6,20 @@ use lib "$Bin/../lib";
 use feature 'switch';
 use File::ReadBackwards;
 
+# PODNAME: eventstreamr-api
+
+# ABSTRACT: eventstreamr-api - Provides a restlike API for EventStreamr
+
+# VERSION
+
+=head1 SYNOPSIS
+
+Usage:
+
+    eventstreamr-api.pl
+
+=cut
+
 set serializer => 'JSON';
 
 # logging

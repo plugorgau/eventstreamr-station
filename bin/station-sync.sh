@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# PODNAME: station-sync.sh
+
 RECORD_BASE=$1
 STORAGE_SERVER=$2
 STORAGE_BASE=$3
