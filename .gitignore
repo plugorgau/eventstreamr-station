@@ -1,4 +1,4 @@
 *.swp
 *.log
-EventStreamr-*
+App-EventStreamr-*
 .build
