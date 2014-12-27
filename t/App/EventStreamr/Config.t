@@ -22,6 +22,7 @@ subtest 'Initial config' => sub {
   is($config->room, "test_room", "Room generated: $config->{room}");
   is($config->record_path, '/tmp/$room/$date', "Record Path generated: $config->{record_path}");
   is($config->run, 0, "Run generated: $config->{run}");
+  is($config->backend, "DVswitch", "Backend generated: $config->{backend}");
 };
 
 $config = App::EventStreamr::Config->new(
@@ -34,12 +35,14 @@ subtest 'Reloaded config' => sub {
   is($config->room, "test_room", "Room generated: $config->{room}");
   is($config->record_path, '/tmp/$room/$date', "Record Path generated: $config->{record_path}");
   is($config->run, 0, "Run generated: $config->{run}");
+  is($config->backend, "DVswitch", "Backend generated: $config->{backend}");
 };
 
 $config->{room} = 'changed_room';
 $config->{nickname} = 'changed';
 $config->{record_path} = '/tmp/new';
 $config->{run} = 1;
+$config->{backend} = "GSTswitch";
 
 $config->write_config;
 
@@ -53,6 +56,7 @@ subtest 'Altered + Reloaded config' => sub {
   is($config->room, "changed_room", "Room generated: $config->{room}");
   is($config->record_path, '/tmp/new', "Record Path generated: $config->{record_path}");
   is($config->run, 1, "Run generated: $config->{run}");
+  is($config->backend, "GSTswitch", "Backend generated: $config->{backend}");
 };
 
 remove_tree( "$path" );

@@ -26,7 +26,8 @@ Provides access to configuration methods.
 
 has 'config_path' => ( is => 'rw', default  => sub { "$ENV{HOME}/.eventstreamr/" } );
 has 'config_file' => ( is => 'rw', lazy => 1, builder => 1 );
-has 'roles'       => ( is => 'rw' );
+has 'roles'       => ( is => 'rw', default => sub { [ ] } );
+has 'backend'     => ( is => 'rw', default => sub { "DVswitch" } );
 has 'nickname'    => ( is => 'rw', lazy => 1, builder => 1 );
 has 'room'        => ( is => 'rw', lazy => 1, default => sub { 'test_room' } );
 has 'record_path' => ( is => 'rw', lazy => 1, default => sub { '/tmp/$room/$date' } );
@@ -82,6 +83,7 @@ method _build_localconfig() {
       room => $self->room,
       record_path => $self->record_path,
       run => $self->run,
+      backend => $self->backend,
     };
     $config->write;
     return $config;
