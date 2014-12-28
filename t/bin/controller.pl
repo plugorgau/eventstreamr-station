@@ -19,5 +19,24 @@ post '/api/station/:macaddress' => sub {
   status 201;
 };
 
+get '/internal/settings' => sub {
+  return {
+    config => {
+      nickname => "internal_test",
+      room => "internal_room",
+      record_path => "/tmp/internal",
+      run => "2",
+    },
+  };
+};
+
+# These are just dummy routes for future testing.
+post '/api/stations/:macaddress/partial' => sub {
+  return request->body;
+};
+
+post '/internal/settings' => sub {
+};
+
 dance;
 

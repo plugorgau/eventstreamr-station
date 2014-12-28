@@ -5,6 +5,7 @@ use experimental 'say';
 use Config::JSON; # libconfig-json-perl
 use File::Path qw(make_path);
 use Carp 'croak';
+use App::EventStreamr::Devices;
 use Moo;
 use namespace::clean;
 
@@ -24,33 +25,50 @@ Provides access to configuration methods.
 
 =cut
 
-has 'config_path' => ( is => 'rw', default  => sub { "$ENV{HOME}/.eventstreamr/" } );
-has 'config_file' => ( is => 'rw', lazy => 1, builder => 1 );
-has 'roles'       => ( is => 'rw', default => sub { [ ] } );
-has 'backend'     => ( is => 'rw', default => sub { "DVswitch" } );
-has 'nickname'    => ( is => 'rw', lazy => 1, builder => 1 );
-has 'room'        => ( is => 'rw', lazy => 1, default => sub { 'test_room' } );
-has 'record_path' => ( is => 'rw', lazy => 1, default => sub { '/tmp/$room/$date' } );
-has 'mixer'       => ( is => 'rw' );
-has 'devices'     => ( is => 'rw' );
-has 'run'         => ( is => 'rw', lazy => 1, default => sub { '0' } );
-has 'control'     => ( is => 'rw' );
-has 'stream'      => ( is => 'rw' );
+has 'config_path'   => ( is => 'rw', default  => sub { "$ENV{HOME}/.eventstreamr/" } );
+has 'config_file'   => ( is => 'rw', lazy => 1, builder => 1 );
+has 'roles'         => ( is => 'rw', default => sub { [ ] } );
+has 'backend'       => ( is => 'rw', default => sub { "DVswitch" } );
+has 'nickname'      => ( is => 'rw', lazy => 1, builder => 1 );
+has 'room'          => ( is => 'rw', lazy => 1, default => sub { 'test_room' } );
+has 'record_path'   => ( is => 'rw', lazy => 1, default => sub { '/tmp/$room/$date' } );
+has 'mixer'         => ( is => 'rw' );
+has 'run'           => ( is => 'rw', lazy => 1, default => sub { '0' } );
+has 'control'       => ( is => 'rw' );
+has 'stream'        => ( is => 'rw' );
+
+# TODO: Be more intelligent with devices
+has 'devices_util'      => ( is => 'rw', lazy => 1, builder => 1 );
+has 'devices'           => ( is => 'rw', default => sub { [ ] } );
+has 'available_devices' => ( is => 'rw' );
 
 # TODO: this really needs to be changed to some
 # type of GUID
 has 'macaddress'  => ( is => 'rw', lazy => 1, builder => 1 );
 
 # External utilities
-has 'localconfig' => ( is => 'rw', lazy => 1, builder => 1, handles => [ qw( create write config ) ] );
+has 'localconfig' => ( 
+  is => 'rw', 
+  lazy => 1, 
+  builder => 1, 
+  handles => [ qw( create write config ) ],
+);
 
 sub BUILD {
   my $self = shift;
   $self->_load_config;
 }
 
+method _build_devices_util() {
+  return App::EventStreamr::Devices->new();
+}
+
+method update_devices() {
+  $self->{available_devices} = $self->devices_util->all();
+}
+
 method _build_config_file() {
-  return $self->config_path."/config.json";
+  return $self->config_path."config.json";
 }
 
 method _build_nickname() {
@@ -71,7 +89,6 @@ method _create_config_path() {
 method _build_localconfig() {
   # Config JSON barfs if you try to load a config that doesn't exist,
   # this will load one or attempt to create it.
-
   if ( -e $self->config_file ) {
     return Config::JSON->new($self->config_file);
   } else {
@@ -90,11 +107,15 @@ method _build_localconfig() {
   }
 }
 
-method _load_config {
+method _load_config() {
   # TODO: There has to be a better way..
   foreach my $key (keys %{$self->localconfig->{config}}) {
     $self->{$key} = $self->localconfig->{config}{$key};
   }
+}
+
+method reload_config() {
+  $self->_build_local;
 }
 
 =method write
@@ -108,7 +129,7 @@ Will write the config out to disk.
 method write_config() {
   # TODO: There has to be a better way..
   foreach my $key (keys %{$self}) {
-    if ( $key !~ /macaddress|localconfig|http|controller/ ) {
+    if ( $key !~ /macaddress|localconfig|http|controller|devices_util|available_devices|api_url/ ) {
       $self->localconfig->{config}{$key} = $self->{$key};
     }
   }
@@ -125,14 +146,126 @@ Will run through configuring EventStreamr.
 =cut
 
 method configure() {
-  # TODO: write configuration process
+  say "Welcome to the EventStreamr config utility\n";
+  
+  my $answer = $self->prompt(
+    "It will clear the current config, is this ok? y/n: ",
+    "n",
+  );
+  exit 1 if ($answer =~ /n/i);
+
+  # Roles
+  $self->{roles} = undef;
+  $self->configure_room();
+  $self->configure_backend();
+  $self->configure_mixer();
+  $self->configure_ingest();
+
+  # TODO: Stream Configuration  
+  #$answer = undef;
+  #$answer = $self->prompt(
+  #  "Stream - stream to configured service y/n: ",
+  #  "y",
+  #);
+
+  #push(@{$self->{roles}}, "stream") if ($answer =~ /y/i);
 }
 
-method prompt($question,:$default) { # inspired from here: http://alvinalexander.com/perl/edu/articles/pl010005
-  if ($default) {
-    say $question, "[", $default, "]: ";
+method configure_mixer() {
+  my $answer = $self->prompt(
+    "Mixer - Video mixer interface y/n: ",
+    "y",
+  );
+
+  if ($answer =~ /y/i) {
+    push(@{$self->{roles}}, "mixer");
+    $self->configure_remote_mixer();
+
+    # We could run gst-switch srv or dvsink
+    # on separate hosts, but this will do
+    # for now.
+    push(@{$self->{roles}}, "record");
+    $self->configure_recordpath();
+  }
+}
+
+method configure_ingest() {
+  my $answer = $self->prompt(
+    "Ingest - audio/video ingest y/n: ",
+    "y",
+  );
+
+  if ($answer =~ /y/i) {
+    push(@{$self->{roles}}, "ingest");
+    
+    $self->update_devices();
+    $self->{devices} = undef;
+    
+    foreach my $device (@{$self->{available_devices}{array}}) {
+      my $ingest = $self->prompt(
+        "Enable '$device->{name}' for ingest",
+        "y",
+      );
+      push(@{$self->{devices}}, $device) if ($ingest =~ /y/i);
+    }
+    $self->configure_remote_mixer() if (! $self->{mixer}{host});
+  }
+}
+
+method configure_remote_mixer() {
+  my $answer = $self->prompt(
+    "host - switching host: ",
+    "127.0.0.1",
+  );
+  $self->{mixer}{host} = $answer;
+  $answer = $self->prompt(
+    "port - switching port: ",
+    "1234",
+  );
+  $self->{mixer}{port} = $answer;
+}
+
+method configure_backend() {
+  my $answer = $self->prompt(
+    "backend - DVswitch|GSTswitch: ",
+    "DVswitch",
+  );
+  if ($answer =~ /gst/i) {
+    $self->{backend} = 'GSTswitch';
+    return;
+  } elsif ($answer =~ /dv/i) {
+    $self->{backend} = 'dvswitch';
+    return;
   } else {
-    say $question, ": ";
+    say "Invalid backend";
+    $self->configure_backend;
+    return
+  }
+}
+
+method configure_recordpath() {
+  say '$room + $date can be used as variables in the path and';
+  say 'will correctly be set and created at run time';
+  my $answer = $self->prompt(
+    "recordpath - '/tmp/\$room/\$date': ",
+    "/tmp/\$room/\$date",
+  );
+  $self->{record_path} = $answer;
+}
+
+method configure_room() {
+  my $answer = $self->prompt(
+    "Room - For record path and controller: ",
+    "room1",
+  );
+  $self->{record_path} = $answer;
+}
+
+method prompt($question,$default?) { # inspired from here: http://alvinalexander.com/perl/edu/articles/pl010005
+  if ($default) {
+    print $question, "[", $default, "]: ";
+  } else {
+    print $question, ": ";
     $default = "";
   }
 

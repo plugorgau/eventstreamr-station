@@ -1,0 +1,112 @@
+#!/usr/bin/env perl
+use v5.10.0;
+use strict;
+use warnings;
+use experimental 'say';
+use App::EventStreamr;
+use Getopt::Long;
+use File::Spec;
+
+# PODNAME: eventstreamr 
+
+# ABSTRACT: eventstreamr - Daemon that runs the Orchestrator
+
+# VERSION
+
+=head1 SYNOPSIS
+
+Usage:
+
+  evenstreamr --configure     : Run through station configuration
+
+  Debugging commands:
+    
+  eventstreamr --version      : Show version information
+  eventstreamr --debug        : Run with debugging enabled.
+  eventstreamr --nodaemon     : Run in the foreground, log to console
+
+=head1 SETUP
+
+=head2 Installation
+
+If you have not already installed this software, the easiest way
+is to use L<cpanm> and L<local::lib>. If you don't have them installed,
+it's easy with:
+
+    curl -L http://cpanmin.us/ | perl - --self-upgrade
+    ~/perl5/bin/cpanm -L ~/perl5 App::local::lib::helper
+    source ~/perl5/bin/localenv-bashrc
+
+You might want to put that last line in your F<~/.bashrc> file.
+
+You can then install C<eventstreamr> and related utilities with:
+
+    cpanm App::EventStreamr
+
+=head1 DESCRIPTION
+
+This is the primary controlling daemon for EventStreamr.
+
+=head1 BUGS/Features Requests
+
+Please submit any bugs, feature requests to
+L<https://github.com/plugorgau/eventstreamr-station/issues> .
+
+Contributions are more than welcome!
+
+=head1 SEE ALSO
+
+L<App::EventStreamr>
+
+=cut
+
+# $progname is just a nicer-formatted version of $0 (our command name)
+my $PROGNAME = (File::Spec->splitpath($0))[2];
+$PROGNAME ||= 'eventstreamr';
+
+my $DEBUG  = 0;
+my $DAEMON = 1;
+
+my $eventstreamr = App::EventStreamr->new();
+
+my $getopts_rc = GetOptions(
+  "configure"     => \&configure,
+  "version"       => \&version,
+  "debug!"        => \$DEBUG,
+  "daemon!"       => \$DAEMON,
+
+  "help|?"        => \&print_usage,
+);
+
+sub print_usage {
+  say q{
+  Usage:
+
+  evenstreamr --configure     : Run through station configuration
+
+  Debugging commands:
+    
+  eventstreamr --version      : Show version information
+  eventstreamr --debug        : Run with debugging enabled.
+  eventstreamr --nodaemon     : Run in the foreground, log to console
+
+  For more documentation, use `perldoc eventstreamr`.
+  };
+
+  exit 1;
+}
+
+sub version {
+  $::VERSION ||= "Unreleased";
+  say "eventstreamr version                 : $::VERSION";
+  say "App::EventStreamr version     : ", $eventstreamr->VERSION;
+  exit 1;
+}
+
+sub configure {
+  $eventstreamr->config->configure;
+
+  exit 1;
+}
+
+

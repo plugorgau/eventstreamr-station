@@ -29,12 +29,14 @@ by L<App::EventStreamr::Config.
 
 =cut
 
-requires 'write_config','localconfig','config_path','macaddress';
+requires 'write_config','localconfig','config_path','macaddress','devices';
 
 has 'controller_config' => ( is => 'ro', lazy => 1, builder => 1 );
 has 'controller'        => ( is => 'rw', lazy => 1, builder => 1 );
 has 'remote_config'     => ( is => 'rw', lazy => 1, builder => 1 );
 has 'http'              => ( is => 'rw', lazy => 1, builder => 1, handles => [ qw( post get ) ] );
+has 'api_url'           => ( is => 'ro', default => sub { "http://127.0.0.1:3000/internal/settings" } );
+
 
 method _build_http() {
   return HTTP::Tiny->new(timeout => 15);
@@ -53,11 +55,14 @@ method _build_controller() {
 }
 
 method _build_remote_config() {
+  # We're designed to operate without a controller.
   return 0 if (! $self->controller);
 
   my $response = $self->http->post($self->controller."/api/station/".$self->macaddress);
 
-  # Controller responds with created 201, post our config 
+  # Controller responds with created 201, post our config.
+  # This occurs when our identifier isn't registered in the
+  # Frontend.
   if ($response->{status} == 201) {
     # Status Post Data
     my $json = to_json($self->localconfig->{config});
@@ -73,6 +78,8 @@ method _build_remote_config() {
     $response = $self->http->post($self->controller."/api/station", \%post_data);
   }
 
+  # We get a 200 if exist and are already registered. Previous 
+  # if block takes care of requesting config after registering.
   if ($response->{status} == 200 ) {
     my $content = from_json($response->{content});
     if (defined $content && $content ne 'true') {
@@ -96,7 +103,70 @@ after '_load_config' => sub {
       $self->{$key} = $self->{remote_config}{$key};
     }
     $self->write_config();
+  } else {
+    $self->post_config();
   }
 };
+
+after 'write_config' => sub {
+  my $self = shift;
+  $self->post_config();
+};
+
+method post_config() {
+  $self->update_devices();
+
+  # Post config to manager api
+  my $json = to_json($self->localconfig->{config});
+  my %post_data = (
+    content => $json,
+    'content-type' => 'application/json',
+    'content-length' => length($json),
+  );
+  my $post = $self->http->post(
+    $self->api_url,
+    \%post_data,
+  );
+
+  if ( $self->remote_config ) {
+    # Post devices to controller.
+    my $data;
+    $data->{key} = "devices";
+    $data->{value} = $self->{available_devices}{all};
+    # I can't actually remember why we delete this key, but 
+    # I'm pretty sure it upsets the apple cart...
+    delete $data->{value}{all};
+
+    $json = to_json($data);
+    # FROM ORIGINAL CODE:
+    # some bug and it's late this could cause hideous issues if 
+    # a device id has a / in it, but this should be unlikely
+    $json =~ s{/|\.}{}g;
+  
+    %post_data = (
+      content => $json,
+      headers => {
+        'station-mgr' => 1,
+        'Content-Type' => 'application/json',
+      }
+    );
+
+    $post = $self->http->post(
+      $self->controller."/api/stations/".$self->macaddress."/partial", 
+      \%post_data,
+    );
+  }
+}
+
+method get_config() {
+  my $get = $self->http->get($self->api_url);
+  my $content = from_json($get->{content});
+
+  # Eww code duplication of _load_config. Same appliest.
+  foreach my $key (keys %{$content->{config}}) {
+    $self->{$key} = $content->{config}{$key};
+  }
+  $self->write_config();
+}
 
 1;

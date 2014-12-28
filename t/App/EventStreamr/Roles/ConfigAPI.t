@@ -17,6 +17,13 @@ subtest 'No controller config' => sub {
   is($config->controller, 0, "Controller config doesn't exist");
 };
 
+# Test controller api
+my $pid = fork();
+if (!$pid) {
+  exec("t/bin/controller.pl");
+}
+sleep 5;
+
 subtest 'Controller Config' => sub {
   # Create example controller config
   open(my $fh, '>', $example);
@@ -26,14 +33,9 @@ subtest 'Controller Config' => sub {
   
   is( -e $example, 1, "Controller Example Created");
   
-  # Test controller api
-  my $pid = fork();
-  if (!$pid) {
-    exec("t/bin/controller.pl");
-  }
-  sleep 5;
-
   $config = Test::App::EventStreamr::ConfigAPI->new();
+
+  # Test config from Controller
   is($config->controller, "http://127.0.0.1:3000", "Controller details found");
 
   is($config->nickname, 'controller_test', "Nickname: ".$config->nickname);
@@ -41,10 +43,20 @@ subtest 'Controller Config' => sub {
   is($config->run, '1', "Run: ".$config->run);
   is($config->record_path, '/tmp/control', "Record Path: ".$config->record_path);
   is(-e $config->config_file, 1, "Config was written");
-
-  # Kill Test api
-  kill 9, $pid;
 };
+
+subtest 'Internal Config' => sub {
+  # Test config from internal api
+  $config = Test::App::EventStreamr::ConfigAPI->new();
+  $config->get_config();
+  is($config->nickname, 'internal_test', "Nickname: ".$config->nickname);
+  is($config->room, 'internal_room', "Room: ".$config->room);
+  is($config->run, '2', "Run: ".$config->run);
+  is($config->record_path, '/tmp/internal', "Record Path: ".$config->record_path);
+};
+
+# Kill Test api
+kill 9, $pid;
 
 subtest 'Test cleanup' => sub {
   remove_tree('/tmp/controller');
