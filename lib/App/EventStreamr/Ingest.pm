@@ -36,7 +36,7 @@ my $StatusRef = sub {
 has 'config'      => ( is => 'rw', required => 1, isa => $ConfigRef );
 has 'status'      => ( is => 'rw', required => 1, isa => $StatusRef );
 has 'backend'     => ( is => 'ro', default => sub { 'DVswitch' } );
-has '_devices'     => ( is => 'ro', default => sub { { } } );
+has '_devices'    => ( is => 'ro', default => sub { { } } );
 
 method _load_package($device) {
   my $pkg = "App::EventStreamr::".$self->backend."::Ingest::$device->{type}";

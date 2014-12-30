@@ -1,5 +1,7 @@
 package App::EventStreamr::Status;
 use Method::Signatures;
+use JSON;
+use Scalar::Util::Reftype;
 use Moo;
 use namespace::clean;
 
@@ -23,7 +25,12 @@ to ensure state is maintained across the application.
 
 =cut
 
-has 'status' => ( is => 'rw' );
+#my $ConfigRef = sub {
+#  croak "config isn't a 'App::EventStreamr::Config' object!" unless reftype( $_[0] )->class eq "App::EventStreamr::Config";
+#};
+
+has 'status'      => ( is => 'rw' );
+has 'config'      => ( is => 'rw' );
 
 method starting($id,$type) {
   # TODO: Logging here once log role exists
@@ -79,7 +86,37 @@ method threshold($id,$status = "failed") {
 }
 
 method post_status {
-  # TODO: Post Status to controller and api
+  if ($self->config) {
+    my $json = to_json($self->{status});
+    my %post_data = (
+      content => $json,
+      'content-type' => 'application/json',
+      'content-length' => length($json),
+    );
+    my $post = $self->config->http->post(
+      $self->config->api_url."/status",
+      \%post_data,
+    );
+
+    if ( $self->config->controller ) {
+      my $data;
+      $data->{key} = "status";
+      $data->{value} = $self->{status};
+
+      %post_data = (
+        content => $json,
+        headers => {
+          'station-mgr' => 1,
+          'Content-Type' => 'application/json',
+        }
+      );
+
+      $post = $self->config->http->post(
+        $self->config->controller."/api/stations/".$self->config->macaddress."/partial", 
+        \%post_data,
+      );
+    }
+  }
 }
 
 1;

@@ -212,8 +212,20 @@ post '/status/:mac' => sub {
 # Internal Communication with Manager
 post '/internal/settings' => sub {
   my $data = from_json(request->body);
+  # This is UGLY, but there is an issue open for improving the API
+  my $status = $self->{status} || { };
   $self = $data;
+  $self->{status} = $status;
   info("Config data posted");
+  debug($self);
+  return;
+};
+
+post '/internal/settings/status' => sub {
+  my $data = from_json(request->body);
+  # This is UGLY, but there is an issue open for improving the API
+  $self->{status} = $data;
+  info("Status data posted");
   debug($self);
   return;
 };

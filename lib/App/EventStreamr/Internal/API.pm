@@ -28,6 +28,7 @@ has 'type'        => ( is => 'ro', default => sub { 'internal' } );
 
 # We're special, we should always be running
 method _run() {
+  $self->{config}{control}{$self->{id}}{run} = 1;
   return 1;
 }
 

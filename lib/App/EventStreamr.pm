@@ -3,6 +3,9 @@ use v5.010;
 use strict;
 use warnings;
 use Method::Signatures;
+use experimental 'switch';
+use Module::Load;
+use App::EventStreamr::Internal::API;
 use Moo;
 use namespace::clean;
 
@@ -59,14 +62,42 @@ has 'status' => (
   handles => [ qw( starting stopping restarting set_state threshold post_status ) ],
 );
 
-method start() {
+method _build_status() {
+  return App::EventStreamr::Status->new(
+    config => $self->config,
+  );
+}
 
+has '_processes'    => ( is => 'ro', default => sub { { } } );
+
+method _load_package($type,$package) {
+  my $pkg = "App::EventStreamr::".$type."::".$package;
+  load $pkg;
+  $self->_processes->{$package} = $pkg->new(
+    config => $self->config,
+    status => $self->status,
+  );
+}
+
+method start() {
+  # Load API
+  $self->_load_package("Internal","API");
+  $self->_processes->{API}->run_stop();
+  $self->config->post_config();
+
+  foreach my $role (@{$self->config->roles}) {
+    $self->_load_package($self->config->backend,ucfirst($role));
+  }
 }
 
 method run() {
+  $self->start();
   while (1 == 1) {
-    print "Run Loop!\n";
-    sleep 10;
+    foreach my $key (keys %{$self->_processes}) {
+      $self->_processes->{$key}->run_stop();
+    }
+    sleep 1;
+    print "Running!!\n";
   }
 }
 

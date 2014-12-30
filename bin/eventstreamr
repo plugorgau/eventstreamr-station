@@ -72,6 +72,7 @@ my $eventstreamr = App::EventStreamr->new();
 my $getopts_rc = GetOptions(
   "configure"     => \&configure,
   "version"       => \&version,
+  "devices"       => \&devices,
   "debug!"        => \$DEBUG,
   "daemon!"       => \$DAEMON,
 
@@ -89,6 +90,7 @@ sub print_usage {
   eventstreamr --version      : Show version information
   eventstreamr --debug        : Run with debugging enabled.
   eventstreamr --nodaemon     : Run in the foreground, log to console
+  eventstreamr --devices      : Print available devices
 
   For more documentation, use `perldoc eventstreamr`.
   };
@@ -96,9 +98,19 @@ sub print_usage {
   exit 1;
 }
 
+sub devices {
+  $eventstreamr->config->update_devices();
+
+  say "ID (Type) - Name";
+  foreach my $device (@{$eventstreamr->config->devices}) {
+    say "$device->{id} ($device->{type}) - $device->{name}";
+  }
+  exit 1;
+}
+
 sub version {
   $::VERSION ||= "Unreleased";
-  say "eventstreamr version                 : $::VERSION";
+  say "eventstreamr version          : $::VERSION";
   say "App::EventStreamr version     : ", $eventstreamr->VERSION;
   exit 1;
 }

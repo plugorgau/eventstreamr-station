@@ -44,6 +44,7 @@ my $proc = App::EventStreamr::DVswitch::Ingest::V4L->new(
 SKIP: {
   # TODO: Detect and use the first available V4L device
   skip "No /dev/video0 device", 5, unless ( -e "/dev/video0" );
+  skip "DVsource not available", 5, unless ( -e "/usr/bin/dvsource" );
   
   $dvswitch->start();
 
