@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use Dancer; # libdancer-perl 
 use v5.14;
 use FindBin qw($Bin);
