@@ -38,14 +38,6 @@ has 'status'      => ( is => 'rw', required => 1, isa => $StatusRef );
 has 'backend'     => ( is => 'ro', default => sub { 'DVswitch' } );
 has '_devices'     => ( is => 'ro', default => sub { { } } );
 
-=method run_stop
-  $device->run_stop()
-
-Will start the process if it's intended to be running or stop it
-if isn't.
-
-=cut
-
 method _load_package($device) {
   my $pkg = "App::EventStreamr::".$self->backend."::Ingest::$device->{type}";
   load $pkg;
@@ -57,6 +49,14 @@ method _load_package($device) {
   );
 }
 
+=method start
+
+  $ingest->start()
+
+Will start all configured devices.
+
+=cut
+
 method start() {
   foreach my $device (@{$self->config->devices}) {
     if (! defined $self->_devices->{$device->{id}}) {
@@ -66,6 +66,15 @@ method start() {
   }
 }
 
+=method run_stop
+
+  $ingest->run_stop()
+
+Will start all configured devices if they're intended to be running 
+or stop them if they're not.
+
+=cut
+
 method run_stop() {
   foreach my $device (@{$self->config->devices}) {
     if (! defined $self->_devices->{$device->{id}}) {
@@ -74,6 +83,14 @@ method run_stop() {
     $self->_devices->{$device->{id}}->run_stop();
   }
 }
+
+=method stop
+
+  $ingest->stop()
+
+Will stop all configured devices.
+
+=cut
 
 method stop() {
   foreach my $device (@{$self->config->devices}) {
