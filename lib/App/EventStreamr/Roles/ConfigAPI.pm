@@ -24,8 +24,8 @@ This is a role wraps around the 'run_stop' of a process.
 This is a Role that can be consumed to post config to the internal
 and controller APIs.
 
-It requires a 'run_stop' method, so really should only be consumed
-by L<App::EventStreamr::Config.
+It requires a methods from the config package, so really should only 
+be consumed by L<App::EventStreamr::Config>.
 
 =cut
 

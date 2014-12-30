@@ -17,7 +17,7 @@ and devices.
 =head1 DESCRIPTION
 
 This package provides the core run/stop logic for EventStreamr. A 
-process will extend this and provide any extra logic specifc to its
+process will extend this and provide any extra logic specific to its
 needs.
 
 It consumes the 'ProcessControl' role with requires a 'cmd' attribute 

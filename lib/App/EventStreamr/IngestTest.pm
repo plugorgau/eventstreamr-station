@@ -13,8 +13,7 @@ This Provides a Test ingest process.
 
 =head1 DESCRIPTION
 
-This largely extends L<App::EventStreamr::Process>, provides
-default cmds that can be overidden in the configuration.
+This largely extends L<App::EventStreamr::Process>.
 
 =cut
 

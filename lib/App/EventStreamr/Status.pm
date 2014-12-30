@@ -19,7 +19,7 @@ Whilst at it's core EventStreamr Starts/Stops processes, the ability
 to notify when something goes wrong and can't be fixed by itself is
 the primary job.
 
-It provides some convinience methods to keep the Run/Stop code nice 
+It provides some convenience methods to keep the Run/Stop code nice 
 and simple. It also is intended to be passed around as a reference
 to ensure state is maintained across the application.
 

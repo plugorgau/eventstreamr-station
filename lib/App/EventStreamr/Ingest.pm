@@ -19,7 +19,7 @@ ingest devices.
 
 This package provides the core run/stop logic for Ingest Devices. A 
 backend specific package will extend this and provide any extra logic 
-specifc to its needs.
+specific to its needs.
 
 'backend' is expected to be overridden by the consuming role.
 

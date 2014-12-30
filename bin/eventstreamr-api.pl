@@ -8,7 +8,7 @@ use File::ReadBackwards;
 
 # PODNAME: eventstreamr-api
 
-# ABSTRACT: eventstreamr-api - Provides a restlike API for EventStreamr
+# ABSTRACT: eventstreamr-api - Provides a REST like API for EventStreamr
 
 # VERSION
 

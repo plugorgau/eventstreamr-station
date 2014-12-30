@@ -21,12 +21,12 @@ use namespace::clean;
 
 =head1 DESCRIPTION
 
-Bourne due to the instability of DVswitch, EventStreamr attempts to 
+Born due to the instability of DVswitch, EventStreamr attempts to 
 remove the time consuming process that is connecting up all the 
 devices and ensuring they stay connected.
 
 First you should configure the system, although if using in 
-conjuction with the frontend it will provide a number of useful
+conjunction with the frontend it will provide a number of useful
 defaults.
 
   eventstreamr --configure

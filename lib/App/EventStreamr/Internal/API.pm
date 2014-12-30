@@ -15,7 +15,7 @@ This manages the internal EventStreamr API
 =head1 DESCRIPTION
 
 This largely extends L<App::EventStreamr::Process>, provides
-default cmds that can be overidden in the configuration.
+default cmds that can be overridden in the configuration.
 
 =cut
 
