@@ -25,17 +25,26 @@ Provides access to configuration methods.
 
 =cut
 
-has 'config_path'   => ( is => 'rw', default  => sub { "$ENV{HOME}/.eventstreamr/" } );
+has 'config_path'   => ( is => 'rw', default  => sub { "$ENV{HOME}/.eventstreamr" } );
 has 'config_file'   => ( is => 'rw', lazy => 1, builder => 1 );
 has 'roles'         => ( is => 'rw', default => sub { [ ] } );
 has 'backend'       => ( is => 'rw', default => sub { "DVswitch" } );
 has 'nickname'      => ( is => 'rw', lazy => 1, builder => 1 );
 has 'room'          => ( is => 'rw', lazy => 1, default => sub { 'test_room' } );
 has 'record_path'   => ( is => 'rw', lazy => 1, default => sub { '/tmp/$room/$date' } );
-has 'mixer'         => ( is => 'rw' );
 has 'run'           => ( is => 'rw', lazy => 1, default => sub { '0' } );
 has 'control'       => ( is => 'rw' );
 has 'stream'        => ( is => 'rw' );
+has 'mixer'         => ( 
+  is => 'rw', 
+  lazy => 1, 
+  default => sub { 
+    {
+      host => '127.0.0.1',
+      port => '1234',
+    }
+  }
+);
 
 # TODO: Be more intelligent with devices
 has 'devices_util'      => ( is => 'rw', lazy => 1, builder => 1 );
@@ -68,7 +77,7 @@ method update_devices() {
 }
 
 method _build_config_file() {
-  return $self->config_path."config.json";
+  return $self->config_path."/config.json";
 }
 
 method _build_nickname() {
@@ -82,8 +91,10 @@ method _build_macaddress() {
 }
 
 method _create_config_path() {
-  make_path($self->config_path) if ( ! -d $self->config_path ) or
-    croak "Couldn't create config path $self->{config_path}";
+  if ( ! -d $self->config_path ) {
+    make_path($self->config_path) or
+      croak "Couldn't create config path $self->{config_path}";
+  }
 }
 
 method _build_localconfig() {
@@ -115,7 +126,7 @@ method _load_config() {
 }
 
 method reload_config() {
-  $self->_build_local;
+  $self->_build_localconfig;
 }
 
 =method write
@@ -129,7 +140,7 @@ Will write the config out to disk.
 method write_config() {
   # TODO: There has to be a better way..
   foreach my $key (keys %{$self}) {
-    if ( $key !~ /macaddress|localconfig|http|controller|devices_util|available_devices|api_url/ ) {
+    if ( $key !~ /macaddress|localconfig|http|controller|devices_util|available_devices|api_url|config_/ ) {
       $self->localconfig->{config}{$key} = $self->{$key};
     }
   }
@@ -149,18 +160,28 @@ method configure() {
   say "Welcome to the EventStreamr config utility\n";
   
   my $answer = $self->prompt(
-    "It will clear the current config, is this ok? y/n: ",
+    "It will clear the current config, is this ok? y/n",
     "n",
   );
   exit 1 if ($answer =~ /n/i);
-
-  # Roles
-  $self->{roles} = undef;
+ 
+  # TODO: Write config clear method
+  $self->roles([]);
+  # Config Questions
   $self->configure_room();
   $self->configure_backend();
   $self->configure_mixer();
   $self->configure_ingest();
+  $self->write_config();
+  
+  say;
 
+  # Confirm written.
+  if (-e $self->config_file) {
+    say "Config written successfully";
+  } else {
+    say "Config failed to write";
+  }
   # TODO: Stream Configuration  
   #$answer = undef;
   #$answer = $self->prompt(
@@ -173,40 +194,40 @@ method configure() {
 
 method configure_mixer() {
   my $answer = $self->prompt(
-    "Mixer - Video mixer interface y/n: ",
+    "Mixer - Video mixer interface y/n",
     "y",
   );
 
   if ($answer =~ /y/i) {
-    push(@{$self->{roles}}, "mixer");
+    push(@{$self->roles}, "mixer");
     $self->configure_remote_mixer();
 
     # We could run gst-switch srv or dvsink
     # on separate hosts, but this will do
     # for now.
-    push(@{$self->{roles}}, "record");
+    push(@{$self->roles}, "record");
     $self->configure_recordpath();
   }
 }
 
 method configure_ingest() {
   my $answer = $self->prompt(
-    "Ingest - audio/video ingest y/n: ",
+    "Ingest - audio/video ingest y/n",
     "y",
   );
 
   if ($answer =~ /y/i) {
-    push(@{$self->{roles}}, "ingest");
+    push(@{$self->roles}, "ingest");
     
     $self->update_devices();
-    $self->{devices} = undef;
+    $self->devices([]);
     
     foreach my $device (@{$self->{available_devices}{array}}) {
       my $ingest = $self->prompt(
-        "Enable '$device->{name}' for ingest",
+        "Enable '".$device->{name}."' for ingest",
         "y",
       );
-      push(@{$self->{devices}}, $device) if ($ingest =~ /y/i);
+      push(@{$self->devices}, $device) if ($ingest =~ /y/i);
     }
     $self->configure_remote_mixer() if (! $self->{mixer}{host});
   }
@@ -214,27 +235,27 @@ method configure_ingest() {
 
 method configure_remote_mixer() {
   my $answer = $self->prompt(
-    "host - switching host: ",
-    "127.0.0.1",
+    "host - switching host",
+    $self->mixer->{host},
   );
-  $self->{mixer}{host} = $answer;
+  $self->mixer->{host} = $answer;
   $answer = $self->prompt(
-    "port - switching port: ",
-    "1234",
+    "port - switching port",
+    $self->mixer->{port},
   );
-  $self->{mixer}{port} = $answer;
+  $self->mixer->{port} = $answer;
 }
 
 method configure_backend() {
   my $answer = $self->prompt(
-    "backend - DVswitch|GSTswitch: ",
-    "DVswitch",
+    "backend - DVswitch|GSTswitch",
+    $self->backend,
   );
   if ($answer =~ /gst/i) {
-    $self->{backend} = 'GSTswitch';
+    $self->backend('GSTswitch');
     return;
   } elsif ($answer =~ /dv/i) {
-    $self->{backend} = 'dvswitch';
+    $self->backend('DVswitch');
     return;
   } else {
     say "Invalid backend";
@@ -247,23 +268,23 @@ method configure_recordpath() {
   say '$room + $date can be used as variables in the path and';
   say 'will correctly be set and created at run time';
   my $answer = $self->prompt(
-    "recordpath - '/tmp/\$room/\$date': ",
-    "/tmp/\$room/\$date",
+    "recordpath -  ",
+    $self->record_path,
   );
-  $self->{record_path} = $answer;
+  $self->record_path($answer);
 }
 
 method configure_room() {
   my $answer = $self->prompt(
-    "Room - For record path and controller: ",
-    "room1",
+    "Room - For record path and controller",
+    $self->room,
   );
-  $self->{record_path} = $answer;
+  $self->room($answer);
 }
 
 method prompt($question,$default?) { # inspired from here: http://alvinalexander.com/perl/edu/articles/pl010005
   if ($default) {
-    print $question, "[", $default, "]: ";
+    print $question, " [", $default, "]: ";
   } else {
     print $question, ": ";
     $default = "";
