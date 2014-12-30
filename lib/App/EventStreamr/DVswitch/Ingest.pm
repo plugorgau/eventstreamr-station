@@ -18,4 +18,8 @@ running as ingest roles.
 
 =cut
 
+extends 'App::EventStreamr::Ingest';
+
+has 'backend' => ( is => 'ro', default => sub { 'DVswitch' } );
+
 1;

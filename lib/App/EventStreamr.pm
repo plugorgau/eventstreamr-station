@@ -64,8 +64,10 @@ method start() {
 }
 
 method run() {
-  print "Run Loop!\n";
-  sleep 10;
+  while (1 == 1) {
+    print "Run Loop!\n";
+    sleep 10;
+  }
 }
 
 method stop() {

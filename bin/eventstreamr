@@ -109,4 +109,4 @@ sub configure {
   exit 1;
 }
 
-
+$eventstreamr->run();
