@@ -15,6 +15,20 @@ use feature qw(switch);
 use Getopt::Long;
 use Data::Dumper;
 
+# PODNAME: station-mgr
+
+# ABSTRACT: station-mgr - Core Station Manager script
+
+# VERSION
+
+=head1 SYNOPSIS
+
+Usage:
+
+    station-mgr.pl
+
+=cut
+
 my $DEBUG  = 0;
 my $DAEMON = 1;
 

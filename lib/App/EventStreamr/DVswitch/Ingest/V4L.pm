@@ -1,4 +1,4 @@
-package App::EventStreamr::DVswitch::V4L;
+package App::EventStreamr::DVswitch::Ingest::V4L;
 use Method::Signatures;
 use Moo;
 use namespace::clean;

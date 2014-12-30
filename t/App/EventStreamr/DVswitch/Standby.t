@@ -26,6 +26,7 @@ my $config = {
     port => 1234,
     loop => "$Bin/../../../data/Test.dv",
   },
+  write_config => sub { },
 };
 bless $config, "App::EventStreamr::Config";
 

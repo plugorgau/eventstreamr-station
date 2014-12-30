@@ -28,6 +28,7 @@ my $config = {
   },
   room => 'eventstreamr',
   record_path => '/tmp/$room/$date',
+  write_config => sub { },
 };
 bless $config, "App::EventStreamr::Config";
 

@@ -8,6 +8,20 @@ use File::Tail; # libfile-tail-perl
 use HTTP::Tiny; # libhttp-tiny-perl
 use JSON; # libjson-perl
 
+# PODNAME: station-devmon
+
+# ABSTRACT: station-devmon - Monitor Syslog for device events
+
+# VERSION
+
+=head1 SYNOPSIS
+
+Usage:
+
+    station-devmon.pl
+
+=cut
+
 # Eventstreamr libs
 use App::EventStreamr::Devices;
 our $devices = App::EventStreamr::Devices->new();

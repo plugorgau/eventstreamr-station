@@ -15,6 +15,7 @@ my $status = App::EventStreamr::Status->new();
 
 my $config = {
   run => 0, 
+  write_config => sub { },
 };
 bless $config, "App::EventStreamr::Config";
 

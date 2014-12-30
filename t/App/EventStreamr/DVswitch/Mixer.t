@@ -22,6 +22,7 @@ my $config = {
   mixer => {
     port => 1234,
   },
+  write_config => sub { },
 };
 bless $config, "App::EventStreamr::Config";
 
