@@ -89,23 +89,25 @@ sub dv {
 
 sub alsa { # Only Does USB devices currently
   my $alsa_devices;
-  my @devices = read_file("/proc/asound/cards");
-  @devices = grep { /].+USB Audio (CODEC|Device)/ } @devices;
-  chomp @devices;
+  if (-e "/proc/asound/cards") {
+    my @devices = read_file("/proc/asound/cards");
+    @devices = grep { /].+USB Audio (CODEC|Device)/ } @devices;
+    chomp @devices;
 
-  foreach my $device (@devices) {
-    $device =~ m/^.+(?<card> \d+).*/x;
-    my $card = $+{card};
-    my $usbid = read_file("/proc/asound/card$card/usbid");
-    my $name = name_lsusb($usbid);
-    chomp $usbid;
+    foreach my $device (@devices) {
+      $device =~ m/^.+(?<card> \d+).*/x;
+      my $card = $+{card};
+      my $usbid = read_file("/proc/asound/card$card/usbid");
+      my $name = name_lsusb($usbid);
+      chomp $usbid;
 
-    $alsa_devices->{$usbid}{id} = $usbid;
-    $alsa_devices->{$usbid}{name} = $name;
-    $alsa_devices->{$usbid}{device} = $card;
-    $alsa_devices->{$usbid}{type} = "ALSA";
-    $alsa_devices->{$usbid}{alsa} = $card;
-    push (@{$alsa_devices->{all}}, $alsa_devices->{$usbid});
+      $alsa_devices->{$usbid}{id} = $usbid;
+      $alsa_devices->{$usbid}{name} = $name;
+      $alsa_devices->{$usbid}{device} = $card;
+      $alsa_devices->{$usbid}{type} = "ALSA";
+      $alsa_devices->{$usbid}{alsa} = $card;
+      push (@{$alsa_devices->{all}}, $alsa_devices->{$usbid});
+    }
   }
   return $alsa_devices;
 }
