@@ -18,4 +18,4 @@ install:
    - cpanm --quiet --notest --skip-satisfied Test::Perl::Critic
    - apt-get install aspell
 script:
-   - dzil test
+   - dzil test -v
