@@ -2,7 +2,7 @@
 
 use strict;
 use lib "t/lib";
-use Test::More tests => 5;
+use Test::More tests => 6;
 use App::EventStreamr::Ingest;
 use App::EventStreamr::Status;
 use App::EventStreamr::Config;
@@ -33,17 +33,25 @@ subtest 'Instantiation' => sub {
   can_ok($proc, qw(run_stop));
 };
 
+subtest 'Start/Stop' => sub {
+  $proc->start();
+  is($proc->_devices->{$id}->running, 1, "Process was Started");
+  
+  $proc->stop();
+  isnt($proc->_devices->{$id}->running, 1, "Process was Stop");
+};
+
 subtest 'Run Stop Starting' => sub {
   $proc->run_stop();
 
-  is($proc->devices->{$id}->running, 1, "Process was Started");
+  is($proc->_devices->{$id}->running, 1, "Process was Started");
 };
 
 $config->{control}{ping}{run} = 0;
 subtest 'Run Stop Stopping' => sub {
   $proc->run_stop();
 
-  isnt($proc->devices->{$id}->running, 1, "Process was Stopped");
+  isnt($proc->_devices->{$id}->running, 1, "Process was Stopped");
 };
 
 $config->{control}{ping}{run} = 2;
@@ -51,12 +59,12 @@ subtest 'Run Stop Restarting' => sub {
   $proc->run_stop();
   $proc->run_stop();
 
-  is($proc->devices->{$id}->running, 1, "Process was Restarted");
+  is($proc->_devices->{$id}->running, 1, "Process was Restarted");
 };
 
 subtest 'Cleanup' => sub {
-  $proc->devices->{$id}->stop();
-  isnt($proc->devices->{$id}->running, 1, "Process was Stopped");
+  $proc->stop();
+  isnt($proc->_devices->{$id}->running, 1, "Process was Stopped");
 
   unlink('/tmp/config.json');
   isnt( ( -e "/tmp/config.json" ),1 ,"Temp Config Removed" );

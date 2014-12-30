@@ -36,7 +36,7 @@ my $StatusRef = sub {
 has 'config'      => ( is => 'rw', required => 1, isa => $ConfigRef );
 has 'status'      => ( is => 'rw', required => 1, isa => $StatusRef );
 has 'backend'     => ( is => 'ro', default => sub { 'DVswitch' } );
-has 'devices'     => ( is => 'ro', default => sub { { } } );
+has '_devices'     => ( is => 'ro', default => sub { { } } );
 
 =method run_stop
   $device->run_stop()
@@ -46,19 +46,41 @@ if isn't.
 
 =cut
 
+method _load_package($device) {
+  my $pkg = "App::EventStreamr::".$self->backend."::Ingest::$device->{type}";
+  load $pkg;
+  $self->_devices->{$device->{id}} = $pkg->new(
+    device => $device->{device},
+    id => $device->{id},
+    config => $self->config,
+    status => $self->status,
+  );
+}
+
+method start() {
+  foreach my $device (@{$self->config->devices}) {
+    if (! defined $self->_devices->{$device->{id}}) {
+      $self->_load_package($device);
+    }
+    $self->_devices->{$device->{id}}->start();
+  }
+}
+
 method run_stop() {
   foreach my $device (@{$self->config->devices}) {
-    if (! defined $self->devices->{$device->{id}}) {
-      my $pkg = "App::EventStreamr::".$self->backend."::Ingest::$device->{type}";
-      load $pkg;
-      $self->devices->{$device->{id}} = $pkg->new(
-        device => $device->{device},
-        id => $device->{id},
-        config => $self->config,
-        status => $self->status,
-      );
+    if (! defined $self->_devices->{$device->{id}}) {
+      $self->_load_package($device);
     }
-    $self->devices->{$device->{id}}->run_stop();
+    $self->_devices->{$device->{id}}->run_stop();
+  }
+}
+
+method stop() {
+  foreach my $device (@{$self->config->devices}) {
+    if (! defined $self->_devices->{$device->{id}}) {
+      $self->_load_package($device);
+    }
+    $self->_devices->{$device->{id}}->stop();
   }
 }
 
