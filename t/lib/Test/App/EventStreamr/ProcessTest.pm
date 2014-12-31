@@ -8,7 +8,10 @@ has 'process' => ( is => 'rw' );
 has 'config' => ( is => 'rw' );
 has 'id' => ( is => 'ro' );
 
+
 method run_tests() {
+  $self->process->sleep_time('3') if ($ENV{TRAVIS});
+
   subtest 'Instantiation' => sub {
     can_ok($self->process, qw(start running stop run_stop));
   };
