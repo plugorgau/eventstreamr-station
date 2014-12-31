@@ -18,5 +18,6 @@ install:
   - cpanm --quiet --notest --skip-satisfied Test::Perl::Critic
   - sudo apt-get install aspell
 script:
+  - pwd
   - cd $TRAVIS_BUILD_DIR
   - dzil test -v
