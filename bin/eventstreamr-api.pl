@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 use Dancer; # libdancer-perl 
-use v5.14;
+use v5.10;
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
 use feature 'switch';
