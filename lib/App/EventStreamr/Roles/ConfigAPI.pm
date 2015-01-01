@@ -6,7 +6,7 @@ use warnings;
 use Config::JSON;
 use JSON;
 use Method::Signatures 20140224; # libmethod-signatures-perl
-use HTTP::Tiny; # libhttp-tiny-perl
+use HTTP::Tiny '0.053'; # libhttp-tiny-perl
 use Proc::ProcessTable; # libproc-processtable-perl
 
 use Moo::Role; # libmoo-perl
