@@ -78,6 +78,7 @@ if isn't.
 
 method run_stop() {
   if ($self->_restart) {
+    $self->info("Restarting ".$self->id." with command: ".$self->cmd);
     $self->status->restarting($self->{id});
 
     if (! $self->running) {
@@ -95,6 +96,7 @@ method run_stop() {
     # and control systems.
     return if $self->status->threshold($self->{id});
 
+    $self->info("Starting ".$self->id." with command: ".$self->cmd);
     $self->status->starting($self->{id},$self->{type});
 
     $self->start();
@@ -102,6 +104,7 @@ method run_stop() {
     # Give the process time to settle.
     sleep $self->sleep_time;
   } elsif ( (! $self->_run && $self->pid ) ) {
+    $self->info("Stopping ".$self->id);
     $self->status->stopping($self->{id});
 
     $self->stop();
@@ -113,11 +116,12 @@ method run_stop() {
 
   # Write config on state change.
   if ( $self->status->set_state($self->running,$self->{id}) ) {
+    $self->info("State changed for ".$self->id);
     $self->config->write_config();
   }
   return;
 }
 
-with('App::EventStreamr::Roles::ProcessControl');
+with('App::EventStreamr::Roles::Logger','App::EventStreamr::Roles::ProcessControl');
 
 1;

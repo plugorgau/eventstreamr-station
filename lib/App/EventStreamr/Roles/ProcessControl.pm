@@ -27,7 +27,7 @@ It requires a 'cmd' attribute and will utilise an optional
 
 =cut
 
-requires 'cmd';
+requires 'cmd','id';
 
 has 'pid' => ( is => 'rw', lazy => 1, builder => 1, clearer => 'clear_pid' );
 
@@ -41,6 +41,7 @@ method _build_pid() {
   my @procs = grep { $_->cmndline =~ /$regex/ } @{ $pt->table };
 
   if (@procs) {
+    $self->info("Process ".$self->id." found with pid=".$procs[0]->pid);
     return $procs[0]->pid;
   } else {
     return 0;
@@ -97,5 +98,7 @@ method running() {
   $self->clear_pid;
   return 0;
 }
+
+with('App::EventStreamr::Roles::Logger');
 
 1;

@@ -39,7 +39,7 @@ has 'backend'     => ( is => 'ro', default => sub { 'DVswitch' } );
 has '_devices'    => ( is => 'ro', default => sub { { } } );
 
 method _load_package($device) {
-  my $pkg = "App::EventStreamr::".$self->backend."::Ingest::$device->{type}";
+  my $pkg = "App::EventStreamr::".$self->backend."::Ingest::".uc($device->{type});
   load $pkg;
   $self->_devices->{$device->{id}} = $pkg->new(
     device => $device->{device},

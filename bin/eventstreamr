@@ -22,6 +22,7 @@ Usage:
   Debugging commands:
     
   eventstreamr --version      : Show version information
+  eventstreamr --devices      : Print a list of devices
   eventstreamr --debug        : Run with debugging enabled.
   eventstreamr --nodaemon     : Run in the foreground, log to console
 
@@ -67,8 +68,6 @@ $PROGNAME ||= 'eventstreamr';
 my $DEBUG  = 0;
 my $DAEMON = 1;
 
-my $eventstreamr = App::EventStreamr->new();
-
 my $getopts_rc = GetOptions(
   "configure"     => \&configure,
   "version"       => \&version,
@@ -77,6 +76,10 @@ my $getopts_rc = GetOptions(
   "daemon!"       => \$DAEMON,
 
   "help|?"        => \&print_usage,
+);
+
+my $eventstreamr = App::EventStreamr->new(
+  debug => $DEBUG,
 );
 
 sub print_usage {
@@ -116,6 +119,7 @@ sub version {
 }
 
 sub configure {
+  my $eventstreamr = App::EventStreamr->new();
   $eventstreamr->config->configure;
 
   exit 1;

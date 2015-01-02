@@ -57,7 +57,8 @@ method _build_controller() {
 method _build_remote_config() {
   # We're designed to operate without a controller.
   return 0 if (! $self->controller);
-
+  
+  $self->info("Registering with controller ".$self->controller."/api/station/".$self->macaddress);
   my $response = $self->http->post($self->controller."/api/station/".$self->macaddress);
 
   # Controller responds with created 201, post our config.
@@ -127,7 +128,7 @@ method post_config() {
     $self->api_url,
     \%post_data,
   );
-
+  
   if ( $self->remote_config ) {
     # Post devices to controller.
     my $data;
@@ -155,6 +156,7 @@ method post_config() {
       $self->controller."/api/stations/".$self->macaddress."/partial", 
       \%post_data,
     );
+  
   }
 }
 

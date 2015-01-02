@@ -40,6 +40,17 @@ or launch from the cli.
 
 use App::EventStreamr::Config;
 
+has 'debug' => ( is => 'ro', default => sub { 0 } );
+has '_log_level' => ( is => 'ro', lazy => 1, builder => 1 );
+
+method _build__log_level() {
+  if ($self->debug) {
+    return "DEBUG, LOG1, SCREEN";
+  } else {
+    return "INFO, LOG1";
+  }
+}
+
 has 'config' => (
   is => 'rw',
   isa => sub { "App::EventStreamr::Config" },
@@ -49,7 +60,9 @@ has 'config' => (
 );
 
 method _build_config() {
-  return App::EventStreamr::Config->new();
+  return App::EventStreamr::Config->new(
+    log_level => $self->_log_level,
+  );
 }
 
 use App::EventStreamr::Status;
@@ -81,6 +94,7 @@ method _load_package($type,$package) {
 
 method start() {
   # Load API
+  $self->info("Manager starting: pid=$$, station_id=".$self->config->macaddress);
   $self->_load_package("Internal","API");
   $self->_processes->{API}->run_stop();
   $self->config->post_config();
@@ -97,13 +111,14 @@ method run() {
       $self->_processes->{$key}->run_stop();
     }
     sleep 1;
-    print "Running!!\n";
   }
 }
 
 method stop() {
 
 }
+
+with('App::EventStreamr::Roles::Logger');
 
 =head1 ACKNOWLEDGEMENTS
 

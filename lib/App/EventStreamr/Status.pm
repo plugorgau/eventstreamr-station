@@ -72,13 +72,13 @@ method set_state($state,$id) {
 }
 
 method threshold($id,$status = "failed") {
-  my $age = $self->{status}{$id}{timestamp} ? time - $self->{status}{$id}{timestamp} : 0;
+  $self->{status}{$id}{timestamp} = time if (! $self->{status}{$id}{timestamp});
+  my $age = time - $self->{status}{$id}{timestamp};
   if ( defined $self->{status}{$id}{runcount} && 
   ($self->{status}{$id}{runcount} > 5 && (time % 10) != 0) ) {
     $self->{status}{$id}{status} = $status;
     $self->{status}{$id}{state} = "hard";
-    # TODO: Logging here once log role exists
-    #("$id failed to start (count=$self->{device_control}{$device->{id}}{runcount}, died=$age secs ago)");
+    $self->info("$id failed to start (count=".$self->{status}{$id}{runcount}.", died=$age secs ago)");
     $self->post_status();
     return 1;
   }
@@ -98,6 +98,8 @@ method post_status {
       \%post_data,
     );
 
+    $self->debug("Status posted to ".$self->config->api_url."/status");
+
     if ( $self->config->controller ) {
       my $data;
       $data->{key} = "status";
@@ -115,8 +117,11 @@ method post_status {
         $self->config->controller."/api/stations/".$self->config->macaddress."/partial", 
         \%post_data,
       );
+      $self->debug("Status posted to ".$self->config->controller."/api/stations/".$self->config->macaddress."/partial");
     }
   }
 }
+
+with('App::EventStreamr::Roles::Logger');
 
 1;

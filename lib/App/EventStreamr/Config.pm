@@ -35,6 +35,7 @@ has 'record_path'   => ( is => 'rw', lazy => 1, default => sub { '/tmp/$room/$da
 has 'run'           => ( is => 'rw', lazy => 1, default => sub { '0' } );
 has 'control'       => ( is => 'rw' );
 has 'stream'        => ( is => 'rw' );
+has 'log_level'     => ( is => 'ro', default => sub { 'INFO, LOG1' } );
 has 'mixer'         => ( 
   is => 'rw', 
   lazy => 1, 
@@ -129,7 +130,23 @@ method reload_config() {
   $self->_build_localconfig;
 }
 
-=method write
+method _clean_config {
+  return {
+    nickname => $self->nickname,
+    room => $self->room,
+    record_path => $self->record_path,
+    run => $self->run,
+    backend => $self->backend,
+    roles => $self->roles,
+    stream => $self->stream,
+    mixer => $self->mixer,
+    control => $self->control,
+    devices => $self->devices,
+    backend => $self->backend,
+  }
+}
+
+=method write_config
 
   $config->write_config();
 
@@ -138,12 +155,7 @@ Will write the config out to disk.
 =cut
 
 method write_config() {
-  # TODO: There has to be a better way..
-  foreach my $key (keys %{$self}) {
-    if ( $key !~ /macaddress|localconfig|http|controller|devices_util|available_devices|api_url|config_/ ) {
-      $self->localconfig->{config}{$key} = $self->{$key};
-    }
-  }
+  $self->localconfig->{config} = $self->_clean_config();
   $self->localconfig->write;
 }
 
@@ -301,6 +313,6 @@ method prompt($question,$default?) { # inspired from here: http://alvinalexander
   }
 }
 
-with('App::EventStreamr::Roles::ConfigAPI');
+with('App::EventStreamr::Roles::Logger','App::EventStreamr::Roles::ConfigAPI');
 
 1;
