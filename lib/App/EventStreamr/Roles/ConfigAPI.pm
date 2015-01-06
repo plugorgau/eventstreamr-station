@@ -66,14 +66,15 @@ method _build_remote_config() {
   # Frontend.
   if ($response->{status} == 201) {
     # Status Post Data
-    my $json = to_json($self->localconfig->{config});
-    my %headers = (
-          'station-mgr' => 1,
-          'Content-Type' => 'application/json',
-    );
+    my $json = to_json($self->_post_data());
+    $self->debug($json);
+     
     my %post_data = (
           content => $json,
-          headers => \%headers,
+          headers => {
+            'station-mgr' => 1,
+            'Content-Type' => 'application/json',
+          } 
     );
   
     $response = $self->http->post($self->controller."/api/station", \%post_data);
@@ -82,8 +83,11 @@ method _build_remote_config() {
   # We get a 200 if exist and are already registered. Previous 
   # if block takes care of requesting config after registering.
   if ($response->{status} == 200 ) {
-    my $content = from_json($response->{content});
-    if (defined $content && $content ne 'true') {
+    $self->debug({filter => \&Data::Dumper::Dumper,
+                    value  => $response}) if ($self->is_debug());
+
+    if (defined $response->{content} && $response->{content} ne 'true') {
+      my $content = from_json($response->{content});
       return $content->{settings};
     }
     return 0;
@@ -118,7 +122,7 @@ method post_config() {
   $self->update_devices();
 
   # Post config to manager api
-  my $json = to_json($self->localconfig->{config});
+  my $json = to_json($self->_post_data());
   my %post_data = (
     content => $json,
     'content-type' => 'application/json',
@@ -161,8 +165,13 @@ method post_config() {
 }
 
 method get_config() {
+  $self->info("Retrieving config from manager API");
   my $get = $self->http->get($self->api_url);
   my $content = from_json($get->{content});
+  
+  $self->debug({filter => \&Data::Dumper::Dumper,
+                  value  => $get}) if ($self->is_debug());
+
 
   # Eww code duplication of _load_config. Same appliest.
   foreach my $key (keys %{$content->{config}}) {
