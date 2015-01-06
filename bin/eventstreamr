@@ -6,6 +6,8 @@ use experimental 'say';
 use App::EventStreamr;
 use Getopt::Long;
 use File::Spec;
+use POSIX;
+use Proc::Daemon; # libproc-daemon-perl
 
 # PODNAME: eventstreamr 
 
@@ -82,6 +84,38 @@ my $eventstreamr = App::EventStreamr->new(
   debug => $DEBUG,
 );
 
+# setup signal handlers and daemon stuff
+# POSIX unmasks the sigprocmask properly
+$SIG{CHLD} = 'IGNORE';
+my $sigset = POSIX::SigSet->new();
+my $update = POSIX::SigAction->new( 'self_update',
+                                    $sigset,
+                                    &POSIX::SA_NODEFER);
+my $exit = POSIX::SigAction->new(   'sig_exit',
+                                    $sigset,
+                                    &POSIX::SA_NODEFER);
+my $pipe = POSIX::SigAction->new(   'sig_pipe',
+                                    $sigset,
+                                    &POSIX::SA_NODEFER);
+my $get = POSIX::SigAction->new(   'get_config',
+                                    $sigset,
+                                    &POSIX::SA_NODEFER);
+my $post = POSIX::SigAction->new(   'post_config',
+                                    $sigset,
+                                    &POSIX::SA_NODEFER);
+# Handle INT/Term
+POSIX::sigaction(&POSIX::SIGTERM, $exit);
+POSIX::sigaction(&POSIX::SIGINT, $exit);
+
+# SIGHUP updates and execs
+POSIX::sigaction(&POSIX::SIGHUP, $update);
+POSIX::sigaction(&POSIX::SIGPIPE, $pipe);
+
+# USR1/2 for get/post config
+POSIX::sigaction(&POSIX::SIGUSR1, $get);
+POSIX::sigaction(&POSIX::SIGUSR2, $post);
+
+
 sub print_usage {
   say q{
   Usage:
@@ -125,4 +159,24 @@ sub configure {
   exit 1;
 }
 
+# Signal Handler Subs
+sub self_update {
+  # TODO: Implement
+}
+
+sub sig_exit {
+  $eventstreamr->stop();
+}
+
+sub get_config {
+  $eventstreamr->config->get_config();
+}
+
+sub post_config {
+  $eventstreamr->config->post_config();
+}
+
+sub sig_pipe {
+  print "Caught Pipe\n";
+}
 $eventstreamr->run();
