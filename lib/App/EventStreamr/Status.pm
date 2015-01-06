@@ -39,24 +39,29 @@ method starting($id,$type) {
   $self->{status}{$id}{status} = "starting";
   $self->{status}{$id}{state} = "soft";
   $self->{status}{$id}{type} = $type;
+  $self->{status}{$id}{id} = $id;
   $self->post_status();
 }
 
-method stopping($id) {
+method stopping($id,$type) {
   # TODO: Logging here once log role exists
   $self->{status}{$id}{status} = "stopping";
   $self->{status}{$id}{state} = "soft";
+  $self->{status}{$id}{type} = $type;
+  $self->{status}{$id}{id} = $id;
   $self->post_status();
 }
 
-method restarting($id) {
+method restarting($id,$type) {
   # TODO: Logging here once log role exists
   $self->{status}{$id}{status} = "restarting";
   $self->{status}{$id}{state} = "soft";
+  $self->{status}{$id}{type} = $type;
+  $self->{status}{$id}{id} = $id;
   $self->post_status();
 }
 
-method set_state($state,$id) {
+method set_state($state,$id,$type) {
   if (defined $self->{status}{$id}{running} &&
       $self->{status}{$id}{running} != $state) {
     # TODO: Logging here once log role exists
@@ -65,19 +70,23 @@ method set_state($state,$id) {
     $self->{status}{$id}{status} = $state ? 'started' : 'stopped';
     $self->{status}{$id}{state} = "hard";
     $self->{status}{$id}{timestamp} = time;
+    $self->{status}{$id}{type} = $type;
+    $self->{status}{$id}{id} = $id;
     $self->post_status();
     return 1;
   }
   return 0;
 }
 
-method threshold($id,$status = "failed") {
+method threshold($id,$type,$status = "failed") {
   $self->{status}{$id}{timestamp} = time if (! $self->{status}{$id}{timestamp});
   my $age = time - $self->{status}{$id}{timestamp};
   if ( defined $self->{status}{$id}{runcount} && 
   ($self->{status}{$id}{runcount} > 5 && (time % 10) != 0) ) {
     $self->{status}{$id}{status} = $status;
     $self->{status}{$id}{state} = "hard";
+    $self->{status}{$id}{type} = $type;
+    $self->{status}{$id}{id} = $id;
     $self->info("$id failed to start (count=".$self->{status}{$id}{runcount}.", died=$age secs ago)");
     $self->post_status();
     return 1;

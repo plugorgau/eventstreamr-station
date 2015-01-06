@@ -39,9 +39,9 @@ TODO: {
   local $TODO = "Process tests broken with Travis" if ($ENV{TRAVIS});
 
   subtest 'State Changes' => sub {
-    is($status->set_state($proc->running,$proc->{id}), 0, "State not changed");
+    is($status->set_state($proc->running,$proc->{id},$proc->{type}), 0, "State not changed");
     $proc->start();
-    is($status->set_state($proc->running,$proc->{id}), 1, "State changed");
+    is($status->set_state($proc->running,$proc->{id},$proc->{type}), 1, "State changed");
     $proc->stop();
   };
   
@@ -53,7 +53,7 @@ TODO: {
   );
   
   my $count = 0;
-  while (! $status->threshold('ls') && $count < 20) {
+  while (! $status->threshold('ls',$proc->{type}) && $count < 20) {
     $proc->run_stop;
     $count++;
     sleep 1;
