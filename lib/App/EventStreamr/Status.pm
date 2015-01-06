@@ -106,7 +106,7 @@ method post_status {
       $data->{value} = $self->{status};
 
       %post_data = (
-        content => $json,
+        content => to_json($data),
         headers => {
           'station-mgr' => 1,
           'Content-Type' => 'application/json',
