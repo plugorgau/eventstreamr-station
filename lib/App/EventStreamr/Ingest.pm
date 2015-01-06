@@ -36,6 +36,8 @@ my $StatusRef = sub {
 has 'config'      => ( is => 'rw', required => 1, isa => $ConfigRef );
 has 'status'      => ( is => 'rw', required => 1, isa => $StatusRef );
 has 'backend'     => ( is => 'ro', default => sub { 'DVswitch' } );
+has 'type'     => ( is => 'ro', default => sub { 'ingest' } );
+has 'id'     => ( is => 'ro', default => sub { 'ingest' } );
 has '_devices'    => ( is => 'ro', default => sub { { } } );
 
 method _load_package($device) {
