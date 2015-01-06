@@ -115,7 +115,15 @@ method run() {
 }
 
 method stop() {
-
+  $self->info("Manager stopping: pid=$$, station_id=".$self->config->macaddress);
+  foreach my $key (keys %{$self->_processes}) {
+    if ( $self->_processes->{$key}->type() eq "internal" ) {
+      $self->info("Stopping: ".$self->_processes->{$key}->id());
+      $self->_processes->{$key}->stop();
+    }
+  }
+  $self->info("Manager stopped: pid=$$, station_id=".$self->config->macaddress);
+  exit 0;
 }
 
 with('App::EventStreamr::Roles::Logger');
