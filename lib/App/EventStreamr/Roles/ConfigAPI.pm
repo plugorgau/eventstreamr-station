@@ -142,11 +142,12 @@ method post_config() {
     # I'm pretty sure it upsets the apple cart...
     delete $data->{value}{all};
 
-    $json = to_json($data);
-    # FROM ORIGINAL CODE:
-    # some bug and it's late this could cause hideous issues if 
-    # a device id has a / in it, but this should be unlikely
-    $json =~ s{/|\.}{}g;
+    # I don't think this is needed!
+    #$json = to_json($data);
+    ## FROM ORIGINAL CODE:
+    ## some bug and it's late this could cause hideous issues if 
+    ## a device id has a / in it, but this should be unlikely
+    #$json =~ s{/|\.}{}g;
   
     %post_data = (
       content => $json,
