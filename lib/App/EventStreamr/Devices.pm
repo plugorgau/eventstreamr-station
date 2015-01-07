@@ -60,7 +60,7 @@ sub dv {
   my @dvs = </sys/bus/firewire/devices/*>;
   my $dv_devices;
 
-  foreach my $dv (@dvs) { # suffers from Big0 notation, but should only be a limited number of devices
+  foreach my $dv (@dvs) {
     if (-e "$dv/vendor") {
       my $vendor_name = read_file("$dv/vendor");
       $vendor_name = read_file("$dv/vendor_name") if ( -e "$dv/vendor_name" );
@@ -119,7 +119,7 @@ sub get_v4l_name {
   # Find USB
   my $index = $+{index};
   my @usbs = </dev/v4l/by-id/*>;
-  foreach my $usb (@usbs) { # suffers from Big0 notation, but should only be a limited number of devices
+  foreach my $usb (@usbs) {
     if ( realpath($usb) =~ /$index/ ) {
       $usb =~ m/\/dev\/v4l\/by-id\/usb-(?<name> .+)-video-index\d/ix;
       $name = $+{name};
