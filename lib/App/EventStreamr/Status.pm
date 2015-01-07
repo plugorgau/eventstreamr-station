@@ -96,18 +96,25 @@ method threshold($id,$type,$status = "failed") {
 
 method post_status {
   if ($self->config) {
-    my $json = to_json($self->{status});
+    my $status;
+    $status->{status} = $self->{status};
+    $status->{macaddress} = $self->config->macaddress;
+    $status->{nickname} = $self->config->nickname;
+
+    my $json = to_json($status);
     my %post_data = (
       content => $json,
       'content-type' => 'application/json',
       'content-length' => length($json),
     );
     my $post = $self->config->http->post(
-      $self->config->api_url."/status",
+      "http://".$self->config->{mixer}{host}.":3000/status/".$self->config->macaddress,
       \%post_data,
     );
 
-    $self->debug("Status posted to ".$self->config->api_url."/status");
+    $self->debug("Status posted to http://".$self->config->{mixer}{host}.":3000/status/".$self->config->macaddress);
+    $self->debug({filter => \&Data::Dumper::Dumper,
+                  value  => $post}) if ($self->is_debug());
 
     if ( $self->config->controller ) {
       # The Frontend doesn't like empty objects..
