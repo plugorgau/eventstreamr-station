@@ -138,14 +138,14 @@ method post_status {
       );
 
       $post = $self->config->http->post(
-        $self->config->controller."/api/stations/".$self->config->macaddress."/partial", 
+        $self->config->controller."/api/station/".$self->config->macaddress."/partial", 
         \%post_data,
       );
 
       $self->debug({filter => \&Data::Dumper::Dumper,
                     value  => $post}) if ($self->is_debug());
 
-      $self->info("Status posted to ".$self->config->controller."/api/stations/".$self->config->macaddress."/partial");
+      $self->info("Status posted to ".$self->config->controller."/api/station/".$self->config->macaddress."/partial");
     }
   }
 }

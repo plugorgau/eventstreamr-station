@@ -158,7 +158,7 @@ method post_config() {
     );
 
     $post = $self->http->post(
-      $self->controller."/api/stations/".$self->macaddress."/partial", 
+      $self->controller."/api/station/".$self->macaddress."/partial", 
       \%post_data,
     );
   

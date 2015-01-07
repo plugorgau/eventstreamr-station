@@ -31,7 +31,7 @@ get '/internal/settings' => sub {
 };
 
 # These are just dummy routes for future testing.
-post '/api/stations/:macaddress/partial' => sub {
+post '/api/station/:macaddress/partial' => sub {
   return request->body;
 };
 
