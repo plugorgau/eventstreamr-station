@@ -180,4 +180,9 @@ sub post_config {
 sub sig_pipe {
   print "Caught Pipe\n";
 }
+
+chdir($eventstreamr->config->config_path) or $eventstreamr->error("Couldn't change working dir to ".$eventstreamr->config->config_path);
+# set umask
+umask 0027;
+
 $eventstreamr->run();
