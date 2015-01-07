@@ -135,11 +135,11 @@ method post_config() {
   
   if ( $self->remote_config ) {
     # Post devices to controller.
+    $self->info("posting devices to controller");
     my $data;
     $data->{key} = "devices";
     $data->{value} = $self->{available_devices}{all};
-    # I can't actually remember why we delete this key, but 
-    # I'm pretty sure it upsets the apple cart...
+    # TODO: Devices code is ugly.
     delete $data->{value}{all};
 
     # I don't think this is needed!
@@ -150,7 +150,7 @@ method post_config() {
     #$json =~ s{/|\.}{}g;
   
     %post_data = (
-      content => $json,
+      content => to_json($data),
       headers => {
         'station-mgr' => 1,
         'Content-Type' => 'application/json',
@@ -162,6 +162,8 @@ method post_config() {
       \%post_data,
     );
   
+    $self->debug({filter => \&Data::Dumper::Dumper,
+                    value  => $post}) if ($self->is_debug());
   }
 }
 
