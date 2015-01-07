@@ -110,6 +110,14 @@ method post_status {
     $self->debug("Status posted to ".$self->config->api_url."/status");
 
     if ( $self->config->controller ) {
+      # The Frontend doesn't like empty objects..
+      # TODO: Fix the frontend
+      foreach my $key (keys %{$self->{status}}) {
+        if (! defined $self->{status}{$key}{id}) {
+          delete $self->{status}{$key};
+        }
+      }
+
       my $data;
       $data->{key} = "status";
       $data->{value} = $self->{status};
@@ -126,7 +134,11 @@ method post_status {
         $self->config->controller."/api/stations/".$self->config->macaddress."/partial", 
         \%post_data,
       );
-      $self->debug("Status posted to ".$self->config->controller."/api/stations/".$self->config->macaddress."/partial");
+
+      $self->debug({filter => \&Data::Dumper::Dumper,
+                    value  => $post}) if ($self->is_debug());
+
+      $self->info("Status posted to ".$self->config->controller."/api/stations/".$self->config->macaddress."/partial");
     }
   }
 }
