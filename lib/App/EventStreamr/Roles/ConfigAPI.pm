@@ -6,7 +6,7 @@ use warnings;
 use Config::JSON;
 use JSON;
 use Method::Signatures 20140224; # libmethod-signatures-perl
-use HTTP::Tiny; # libhttp-tiny-perl
+use HTTP::Tiny '0.053'; # libhttp-tiny-perl
 use Proc::ProcessTable; # libproc-processtable-perl
 
 use Moo::Role; # libmoo-perl
@@ -24,8 +24,8 @@ This is a role wraps around the 'run_stop' of a process.
 This is a Role that can be consumed to post config to the internal
 and controller APIs.
 
-It requires a 'run_stop' method, so really should only be consumed
-by L<App::EventStreamr::Config.
+It requires a methods from the config package, so really should only 
+be consumed by L<App::EventStreamr::Config>.
 
 =cut
 
@@ -57,7 +57,8 @@ method _build_controller() {
 method _build_remote_config() {
   # We're designed to operate without a controller.
   return 0 if (! $self->controller);
-
+  
+  $self->info("Registering with controller ".$self->controller."/api/station/".$self->macaddress);
   my $response = $self->http->post($self->controller."/api/station/".$self->macaddress);
 
   # Controller responds with created 201, post our config.
@@ -65,14 +66,15 @@ method _build_remote_config() {
   # Frontend.
   if ($response->{status} == 201) {
     # Status Post Data
-    my $json = to_json($self->localconfig->{config});
-    my %headers = (
-          'station-mgr' => 1,
-          'Content-Type' => 'application/json',
-    );
+    my $json = to_json($self->_post_data());
+    $self->debug($json);
+     
     my %post_data = (
           content => $json,
-          headers => \%headers,
+          headers => {
+            'station-mgr' => 1,
+            'Content-Type' => 'application/json',
+          } 
     );
   
     $response = $self->http->post($self->controller."/api/station", \%post_data);
@@ -81,8 +83,11 @@ method _build_remote_config() {
   # We get a 200 if exist and are already registered. Previous 
   # if block takes care of requesting config after registering.
   if ($response->{status} == 200 ) {
-    my $content = from_json($response->{content});
-    if (defined $content && $content ne 'true') {
+    $self->debug({filter => \&Data::Dumper::Dumper,
+                    value  => $response}) if ($self->is_debug());
+
+    if (defined $response->{content} && $response->{content} ne 'true') {
+      my $content = from_json($response->{content});
       return $content->{settings};
     }
     return 0;
@@ -117,7 +122,7 @@ method post_config() {
   $self->update_devices();
 
   # Post config to manager api
-  my $json = to_json($self->localconfig->{config});
+  my $json = to_json($self->_post_data());
   my %post_data = (
     content => $json,
     'content-type' => 'application/json',
@@ -127,24 +132,25 @@ method post_config() {
     $self->api_url,
     \%post_data,
   );
-
+  
   if ( $self->remote_config ) {
     # Post devices to controller.
+    $self->info("posting devices to controller");
     my $data;
     $data->{key} = "devices";
     $data->{value} = $self->{available_devices}{all};
-    # I can't actually remember why we delete this key, but 
-    # I'm pretty sure it upsets the apple cart...
+    # TODO: Devices code is ugly.
     delete $data->{value}{all};
 
-    $json = to_json($data);
-    # FROM ORIGINAL CODE:
-    # some bug and it's late this could cause hideous issues if 
-    # a device id has a / in it, but this should be unlikely
-    $json =~ s{/|\.}{}g;
+    # I don't think this is needed!
+    #$json = to_json($data);
+    ## FROM ORIGINAL CODE:
+    ## some bug and it's late this could cause hideous issues if 
+    ## a device id has a / in it, but this should be unlikely
+    #$json =~ s{/|\.}{}g;
   
     %post_data = (
-      content => $json,
+      content => to_json($data),
       headers => {
         'station-mgr' => 1,
         'Content-Type' => 'application/json',
@@ -155,12 +161,20 @@ method post_config() {
       $self->controller."/api/stations/".$self->macaddress."/partial", 
       \%post_data,
     );
+  
+    $self->debug({filter => \&Data::Dumper::Dumper,
+                    value  => $post}) if ($self->is_debug());
   }
 }
 
 method get_config() {
+  $self->info("Retrieving config from manager API");
   my $get = $self->http->get($self->api_url);
   my $content = from_json($get->{content});
+  
+  $self->debug({filter => \&Data::Dumper::Dumper,
+                  value  => $get}) if ($self->is_debug());
+
 
   # Eww code duplication of _load_config. Same appliest.
   foreach my $key (keys %{$content->{config}}) {

@@ -3,6 +3,9 @@ use v5.010;
 use strict;
 use warnings;
 use Method::Signatures;
+use experimental 'switch';
+use Module::Load;
+use App::EventStreamr::Internal::API;
 use Moo;
 use namespace::clean;
 
@@ -18,12 +21,12 @@ use namespace::clean;
 
 =head1 DESCRIPTION
 
-Bourne due to the instability of DVswitch, EventStreamr attempts to 
+Born due to the instability of DVswitch, EventStreamr attempts to 
 remove the time consuming process that is connecting up all the 
 devices and ensuring they stay connected.
 
 First you should configure the system, although if using in 
-conjuction with the frontend it will provide a number of useful
+conjunction with the frontend it will provide a number of useful
 defaults.
 
   eventstreamr --configure
@@ -37,6 +40,17 @@ or launch from the cli.
 
 use App::EventStreamr::Config;
 
+has 'debug' => ( is => 'ro', default => sub { 0 } );
+has '_log_level' => ( is => 'ro', lazy => 1, builder => 1 );
+
+method _build__log_level() {
+  if ($self->debug) {
+    return "DEBUG, LOG1, SCREEN";
+  } else {
+    return "INFO, LOG1";
+  }
+}
+
 has 'config' => (
   is => 'rw',
   isa => sub { "App::EventStreamr::Config" },
@@ -46,7 +60,9 @@ has 'config' => (
 );
 
 method _build_config() {
-  return App::EventStreamr::Config->new();
+  return App::EventStreamr::Config->new(
+    log_level => $self->_log_level,
+  );
 }
 
 use App::EventStreamr::Status;
@@ -59,20 +75,58 @@ has 'status' => (
   handles => [ qw( starting stopping restarting set_state threshold post_status ) ],
 );
 
-method start() {
+method _build_status() {
+  return App::EventStreamr::Status->new(
+    config => $self->config,
+  );
+}
 
+has '_processes'    => ( is => 'ro', default => sub { { } } );
+
+method _load_package($type,$package) {
+  my $pkg = "App::EventStreamr::".$type."::".$package;
+  load $pkg;
+  $self->_processes->{$package} = $pkg->new(
+    config => $self->config,
+    status => $self->status,
+  );
+}
+
+method start() {
+  # Load API
+  $self->info("Manager starting: pid=$$, station_id=".$self->config->macaddress);
+  $self->_load_package("Internal","API");
+  $self->_processes->{API}->run_stop();
+  $self->config->post_config();
+
+  foreach my $role (@{$self->config->roles}) {
+    $self->_load_package($self->config->backend,ucfirst($role));
+  }
 }
 
 method run() {
+  $self->start();
   while (1 == 1) {
-    print "Run Loop!\n";
-    sleep 10;
+    foreach my $key (keys %{$self->_processes}) {
+      $self->_processes->{$key}->run_stop();
+    }
+    sleep 1;
   }
 }
 
 method stop() {
-
+  $self->info("Manager stopping: pid=$$, station_id=".$self->config->macaddress);
+  foreach my $key (keys %{$self->_processes}) {
+    if ( $self->_processes->{$key}->type() eq "internal" ) {
+      $self->info("Stopping: ".$self->_processes->{$key}->id());
+      $self->_processes->{$key}->stop();
+    }
+  }
+  $self->info("Manager stopped: pid=$$, station_id=".$self->config->macaddress);
+  exit 0;
 }
+
+with('App::EventStreamr::Roles::Logger');
 
 =head1 ACKNOWLEDGEMENTS
 

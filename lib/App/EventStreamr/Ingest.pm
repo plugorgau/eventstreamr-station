@@ -19,7 +19,7 @@ ingest devices.
 
 This package provides the core run/stop logic for Ingest Devices. A 
 backend specific package will extend this and provide any extra logic 
-specifc to its needs.
+specific to its needs.
 
 'backend' is expected to be overridden by the consuming role.
 
@@ -36,10 +36,12 @@ my $StatusRef = sub {
 has 'config'      => ( is => 'rw', required => 1, isa => $ConfigRef );
 has 'status'      => ( is => 'rw', required => 1, isa => $StatusRef );
 has 'backend'     => ( is => 'ro', default => sub { 'DVswitch' } );
-has '_devices'     => ( is => 'ro', default => sub { { } } );
+has 'type'     => ( is => 'ro', default => sub { 'ingest' } );
+has 'id'     => ( is => 'ro', default => sub { 'ingest' } );
+has '_devices'    => ( is => 'ro', default => sub { { } } );
 
 method _load_package($device) {
-  my $pkg = "App::EventStreamr::".$self->backend."::Ingest::$device->{type}";
+  my $pkg = "App::EventStreamr::".$self->backend."::Ingest::".$device->{type};
   load $pkg;
   $self->_devices->{$device->{id}} = $pkg->new(
     device => $device->{device},

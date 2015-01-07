@@ -35,6 +35,8 @@ has 'record_path'   => ( is => 'rw', lazy => 1, default => sub { '/tmp/$room/$da
 has 'run'           => ( is => 'rw', lazy => 1, default => sub { '0' } );
 has 'control'       => ( is => 'rw' );
 has 'stream'        => ( is => 'rw' );
+has 'pid'           => ( is => 'ro', lazy => 1, builder => 1);
+has 'log_level'     => ( is => 'ro', default => sub { 'INFO, LOG1' } );
 has 'mixer'         => ( 
   is => 'rw', 
   lazy => 1, 
@@ -66,6 +68,10 @@ has 'localconfig' => (
 sub BUILD {
   my $self = shift;
   $self->_load_config;
+}
+
+method _build_pid() {
+  return $$;
 }
 
 method _build_devices_util() {
@@ -129,7 +135,30 @@ method reload_config() {
   $self->_build_localconfig;
 }
 
-=method write
+method _clean_config() {
+  return {
+    nickname => $self->nickname,
+    room => $self->room,
+    record_path => $self->record_path,
+    run => $self->run,
+    backend => $self->backend,
+    roles => $self->roles,
+    stream => $self->stream,
+    mixer => $self->mixer,
+    control => $self->control,
+    devices => $self->devices,
+    backend => $self->backend,
+  }
+}
+
+method _post_data() {
+  my $config = $self->_clean_config();
+  $config->{manager}{pid} = $$;
+  $config->{macaddress} = $self->macaddress();
+  return $config;
+}
+
+=method write_config
 
   $config->write_config();
 
@@ -138,12 +167,7 @@ Will write the config out to disk.
 =cut
 
 method write_config() {
-  # TODO: There has to be a better way..
-  foreach my $key (keys %{$self}) {
-    if ( $key !~ /macaddress|localconfig|http|controller|devices_util|available_devices|api_url|config_/ ) {
-      $self->localconfig->{config}{$key} = $self->{$key};
-    }
-  }
+  $self->localconfig->{config} = $self->_clean_config();
   $self->localconfig->write;
 }
 
@@ -234,16 +258,18 @@ method configure_ingest() {
 }
 
 method configure_remote_mixer() {
+  # TODO: Setting config like this is terrible, 
+  # figure out how to do it better
   my $answer = $self->prompt(
     "host - switching host",
-    $self->mixer->{host},
+    "127.0.0.1",
   );
-  $self->mixer->{host} = $answer;
+  $self->{mixer}{host} = $answer ;
   $answer = $self->prompt(
     "port - switching port",
-    $self->mixer->{port},
+    "1234",
   );
-  $self->mixer->{port} = $answer;
+  $self->{mixer}{port} = $answer;
 }
 
 method configure_backend() {
@@ -268,8 +294,8 @@ method configure_recordpath() {
   say '$room + $date can be used as variables in the path and';
   say 'will correctly be set and created at run time';
   my $answer = $self->prompt(
-    "recordpath -  ",
-    $self->record_path,
+    "recordpath - ",
+    '/tmp/$room/$date',
   );
   $self->record_path($answer);
 }
@@ -301,6 +327,6 @@ method prompt($question,$default?) { # inspired from here: http://alvinalexander
   }
 }
 
-with('App::EventStreamr::Roles::ConfigAPI');
+with('App::EventStreamr::Roles::Logger','App::EventStreamr::Roles::ConfigAPI');
 
 1;

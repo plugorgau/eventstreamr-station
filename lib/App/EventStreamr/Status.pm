@@ -1,5 +1,7 @@
 package App::EventStreamr::Status;
 use Method::Signatures;
+use JSON;
+use Scalar::Util::Reftype;
 use Moo;
 use namespace::clean;
 
@@ -17,13 +19,18 @@ Whilst at it's core EventStreamr Starts/Stops processes, the ability
 to notify when something goes wrong and can't be fixed by itself is
 the primary job.
 
-It provides some convinience methods to keep the Run/Stop code nice 
+It provides some convenience methods to keep the Run/Stop code nice 
 and simple. It also is intended to be passed around as a reference
 to ensure state is maintained across the application.
 
 =cut
 
-has 'status' => ( is => 'rw' );
+#my $ConfigRef = sub {
+#  croak "config isn't a 'App::EventStreamr::Config' object!" unless reftype( $_[0] )->class eq "App::EventStreamr::Config";
+#};
+
+has 'status'      => ( is => 'rw' );
+has 'config'      => ( is => 'rw' );
 
 method starting($id,$type) {
   # TODO: Logging here once log role exists
@@ -32,24 +39,29 @@ method starting($id,$type) {
   $self->{status}{$id}{status} = "starting";
   $self->{status}{$id}{state} = "soft";
   $self->{status}{$id}{type} = $type;
+  $self->{status}{$id}{id} = $id;
   $self->post_status();
 }
 
-method stopping($id) {
+method stopping($id,$type) {
   # TODO: Logging here once log role exists
   $self->{status}{$id}{status} = "stopping";
   $self->{status}{$id}{state} = "soft";
+  $self->{status}{$id}{type} = $type;
+  $self->{status}{$id}{id} = $id;
   $self->post_status();
 }
 
-method restarting($id) {
+method restarting($id,$type) {
   # TODO: Logging here once log role exists
   $self->{status}{$id}{status} = "restarting";
   $self->{status}{$id}{state} = "soft";
+  $self->{status}{$id}{type} = $type;
+  $self->{status}{$id}{id} = $id;
   $self->post_status();
 }
 
-method set_state($state,$id) {
+method set_state($state,$id,$type) {
   if (defined $self->{status}{$id}{running} &&
       $self->{status}{$id}{running} != $state) {
     # TODO: Logging here once log role exists
@@ -58,20 +70,24 @@ method set_state($state,$id) {
     $self->{status}{$id}{status} = $state ? 'started' : 'stopped';
     $self->{status}{$id}{state} = "hard";
     $self->{status}{$id}{timestamp} = time;
+    $self->{status}{$id}{type} = $type;
+    $self->{status}{$id}{id} = $id;
     $self->post_status();
     return 1;
   }
   return 0;
 }
 
-method threshold($id,$status = "failed") {
-  my $age = $self->{status}{$id}{timestamp} ? time - $self->{status}{$id}{timestamp} : 0;
+method threshold($id,$type,$status = "failed") {
+  $self->{status}{$id}{timestamp} = time if (! $self->{status}{$id}{timestamp});
+  my $age = time - $self->{status}{$id}{timestamp};
   if ( defined $self->{status}{$id}{runcount} && 
   ($self->{status}{$id}{runcount} > 5 && (time % 10) != 0) ) {
     $self->{status}{$id}{status} = $status;
     $self->{status}{$id}{state} = "hard";
-    # TODO: Logging here once log role exists
-    #("$id failed to start (count=$self->{device_control}{$device->{id}}{runcount}, died=$age secs ago)");
+    $self->{status}{$id}{type} = $type;
+    $self->{status}{$id}{id} = $id;
+    $self->info("$id failed to start (count=".$self->{status}{$id}{runcount}.", died=$age secs ago)");
     $self->post_status();
     return 1;
   }
@@ -79,7 +95,61 @@ method threshold($id,$status = "failed") {
 }
 
 method post_status {
-  # TODO: Post Status to controller and api
+  if ($self->config) {
+    my $status;
+    $status->{status} = $self->{status};
+    $status->{macaddress} = $self->config->macaddress;
+    $status->{nickname} = $self->config->nickname;
+
+    my $json = to_json($status);
+    my %post_data = (
+      content => $json,
+      'content-type' => 'application/json',
+      'content-length' => length($json),
+    );
+    my $post = $self->config->http->post(
+      "http://".$self->config->{mixer}{host}.":3000/status/".$self->config->macaddress,
+      \%post_data,
+    );
+
+    $self->debug("Status posted to http://".$self->config->{mixer}{host}.":3000/status/".$self->config->macaddress);
+    $self->debug({filter => \&Data::Dumper::Dumper,
+                  value  => $post}) if ($self->is_debug());
+
+    if ( $self->config->controller ) {
+      # The Frontend doesn't like empty objects..
+      # TODO: Fix the frontend
+      foreach my $key (keys %{$self->{status}}) {
+        if (! defined $self->{status}{$key}{id}) {
+          delete $self->{status}{$key};
+        }
+      }
+
+      my $data;
+      $data->{key} = "status";
+      $data->{value} = $self->{status};
+
+      %post_data = (
+        content => to_json($data),
+        headers => {
+          'station-mgr' => 1,
+          'Content-Type' => 'application/json',
+        }
+      );
+
+      $post = $self->config->http->post(
+        $self->config->controller."/api/stations/".$self->config->macaddress."/partial", 
+        \%post_data,
+      );
+
+      $self->debug({filter => \&Data::Dumper::Dumper,
+                    value  => $post}) if ($self->is_debug());
+
+      $self->info("Status posted to ".$self->config->controller."/api/stations/".$self->config->macaddress."/partial");
+    }
+  }
 }
+
+with('App::EventStreamr::Roles::Logger');
 
 1;

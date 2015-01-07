@@ -17,7 +17,7 @@ and devices.
 =head1 DESCRIPTION
 
 This package provides the core run/stop logic for EventStreamr. A 
-process will extend this and provide any extra logic specifc to its
+process will extend this and provide any extra logic specific to its
 needs.
 
 It consumes the 'ProcessControl' role with requires a 'cmd' attribute 
@@ -78,12 +78,13 @@ if isn't.
 
 method run_stop() {
   if ($self->_restart) {
-    $self->status->restarting($self->{id});
+    $self->info("Restarting ".$self->id." with command: ".$self->cmd);
+    $self->status->restarting($self->{id},$self->{type});
 
     if (! $self->running) {
       $self->{config}{control}{$self->{id}}{run} = 1;
     } else {
-      $self->status->stopping($self->{id});
+      $self->status->stopping($self->{id},$self->{type});
       $self->stop();
     
       # Give the process time to settle.
@@ -93,8 +94,9 @@ method run_stop() {
   } elsif ( $self->_run && ! $self->pid) {
     # Slows down the restarts to ensure we don't flood logs
     # and control systems.
-    return if $self->status->threshold($self->{id});
+    return if $self->status->threshold($self->{id},$self->{type});
 
+    $self->info("Starting ".$self->id." with command: ".$self->cmd);
     $self->status->starting($self->{id},$self->{type});
 
     $self->start();
@@ -102,7 +104,8 @@ method run_stop() {
     # Give the process time to settle.
     sleep $self->sleep_time;
   } elsif ( (! $self->_run && $self->pid ) ) {
-    $self->status->stopping($self->{id});
+    $self->info("Stopping ".$self->id);
+    $self->status->stopping($self->{id},$self->{type});
 
     $self->stop();
 
@@ -112,12 +115,13 @@ method run_stop() {
   
 
   # Write config on state change.
-  if ( $self->status->set_state($self->running,$self->{id}) ) {
+  if ( $self->status->set_state($self->running,$self->{id},$self->{type}) ) {
+    $self->info("State changed for ".$self->id);
     $self->config->write_config();
   }
   return;
 }
 
-with('App::EventStreamr::Roles::ProcessControl');
+with('App::EventStreamr::Roles::Logger','App::EventStreamr::Roles::ProcessControl');
 
 1;

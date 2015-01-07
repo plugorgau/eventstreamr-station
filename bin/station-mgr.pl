@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use v5.14;
+use v5.10;
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
 use Proc::Daemon; # libproc-daemon-perl
@@ -11,7 +11,7 @@ use Log::Log4perl; # liblog-log4perl-perl
 use POSIX;
 use File::Path qw(make_path);
 use File::Basename;
-use feature qw(switch);
+use experimental 'switch';
 use Getopt::Long;
 use Data::Dumper;
 

@@ -1,14 +1,13 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 use Dancer; # libdancer-perl 
-use v5.14;
-use FindBin qw($Bin);
-use lib "$Bin/../lib";
-use feature 'switch';
+use v5.10;
+use experimental 'switch';
 use File::ReadBackwards;
+use File::ShareDir::Tarball;
 
 # PODNAME: eventstreamr-api
 
-# ABSTRACT: eventstreamr-api - Provides a restlike API for EventStreamr
+# ABSTRACT: eventstreamr-api - Provides a REST like API for EventStreamr
 
 # VERSION
 
@@ -20,13 +19,16 @@ Usage:
 
 =cut
 
+my $files = File::ShareDir::Tarball::dist_dir( 'App-EventStreamr' );
+
 set serializer => 'JSON';
 
 # logging
+set logpath => "$ENV{HOME}/.eventstreamr"; # need collect this somehow..
 set logger => 'file';
 set log => 'info';
 
-unless ( config->{environment} eq 'production' ) {
+if ( ! (config->{environment} eq 'production') ) {
   set logger => 'console';
   set log => 'core';
 }
@@ -40,7 +42,7 @@ our $self;
 our $status;
 
 # routes
-set public => "$Bin/../status";
+set public => "$files/status";
 get '/dump' => sub {
   my $data = $self;
   header 'Access-Control-Allow-Origin' => '*';
@@ -164,7 +166,7 @@ get '/manager/logs' => sub {
   my @log;
   my $count = 0;
   my $result;
-  my $bw = File::ReadBackwards->new("$Bin/../logs/station-mgr.log" );
+  my $bw = File::ReadBackwards->new("$ENV{HOME}/.eventstreamr/eventstreamr.log" );
 
   while( defined( my $log_line = $bw->readline ) && $count < 101) {
     $count++;
@@ -212,7 +214,7 @@ post '/status/:mac' => sub {
 # Internal Communication with Manager
 post '/internal/settings' => sub {
   my $data = from_json(request->body);
-  $self = $data;
+  $self->{config} = $data;
   info("Config data posted");
   debug($self);
   return;
