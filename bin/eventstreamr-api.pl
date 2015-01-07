@@ -1,9 +1,7 @@
 #!/usr/bin/env perl
 use Dancer; # libdancer-perl 
 use v5.10;
-use FindBin qw($Bin);
-use lib "$Bin/../lib";
-use feature 'switch';
+use experimental 'switch';
 use File::ReadBackwards;
 
 # PODNAME: eventstreamr-api
@@ -23,10 +21,11 @@ Usage:
 set serializer => 'JSON';
 
 # logging
+set logpath => "$ENV{HOME}/.eventstreamr"; # need collect this somehow..
 set logger => 'file';
 set log => 'info';
 
-unless ( config->{environment} eq 'production' ) {
+if ( ! (config->{environment} eq 'production') ) {
   set logger => 'console';
   set log => 'core';
 }
@@ -40,7 +39,7 @@ our $self;
 our $status;
 
 # routes
-set public => "$Bin/../status";
+set public => "status/";
 get '/dump' => sub {
   my $data = $self;
   header 'Access-Control-Allow-Origin' => '*';
@@ -164,7 +163,7 @@ get '/manager/logs' => sub {
   my @log;
   my $count = 0;
   my $result;
-  my $bw = File::ReadBackwards->new("$Bin/../logs/station-mgr.log" );
+  my $bw = File::ReadBackwards->new("$ENV{HOME}/.eventstreamr/eventstreamr.log" );
 
   while( defined( my $log_line = $bw->readline ) && $count < 101) {
     $count++;
