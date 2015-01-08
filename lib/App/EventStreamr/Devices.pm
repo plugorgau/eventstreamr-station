@@ -36,6 +36,9 @@ sub all {
   if ($v4l || $dv || $alsa) {
     $self->{devices}{all} = Hash::Merge::Simple->merge($v4l,$dv,$alsa);
     @{$self->{devices}{array}} = (@{$self->{devices}{v4l}{all}}, @{$self->{devices}{dv}{all}},@{$self->{devices}{alsa}{all}});
+  } else {
+    $self->{devices}{all} = undef;
+    @{$self->{devices}{array}} = [];
   }
 
   return $self->{devices};
