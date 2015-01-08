@@ -95,10 +95,15 @@ method _load_package($type,$package) {
 method start() {
   # Load API
   $self->info("Manager starting: pid=$$, station_id=".$self->config->macaddress);
+
+  # Internal Processes
   $self->_load_package("Internal","API");
   $self->_processes->{API}->run_stop();
+  $self->_load_package("Internal","Devmon");
+  $self->_processes->{Devmon}->run_stop();
   $self->config->post_config();
-
+  
+  # Roles
   foreach my $role (@{$self->config->roles}) {
     $self->_load_package($self->config->backend,ucfirst($role));
   }
