@@ -138,9 +138,7 @@ method post_config() {
     $self->info("posting devices to controller");
     my $data;
     $data->{key} = "devices";
-    $data->{value} = $self->{available_devices}{all};
-    # TODO: Devices code is ugly.
-    delete $data->{value}{all};
+    @{$data->{value}} = @{$self->{available_devices}{array}};
 
     # I don't think this is needed!
     #$json = to_json($data);
