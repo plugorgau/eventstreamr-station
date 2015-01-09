@@ -21,6 +21,7 @@ default cmds that can be overridden in the configuration.
 extends 'App::EventStreamr::Process';
 
 has 'cmd'         => ( is => 'ro', lazy => 1, builder => 1 );
+has 'cmd_regex'   => ( is => 'ro', lazy => 1, builder => 1 );
 has 'id'          => ( is => 'ro', required => 1 );
 has 'device'      => ( is => 'ro', required => 1 );
 has 'type'        => ( is => 'ro', default => sub { 'ingest' } );
@@ -37,6 +38,10 @@ method _build_cmd() {
 
   $command =~ s/\$(\w+)/$cmd_vars{$1}/g;
   return $command;
+}
+
+method _build_cmd_regex() {
+  return qr:dvgrab.+$self->{id}.*:;
 }
 
 1;
