@@ -2,25 +2,24 @@
 
 use strict;
 use lib "t/lib";
-use Test::More tests => 7;
+use Test::More tests => 8;
 use Test::App::EventStreamr::Process;
 use App::EventStreamr::Status;
+use App::EventStreamr::Config;
 use Test::App::EventStreamr::ProcessTest;
 
 my $command = 'ping 127.0.0.1';
 my $id = 'ping';
 my $status = App::EventStreamr::Status->new();
 
-my $config = {
-  run => 1, 
-  control => {
-    ping => {
-      run => 1,
-    },
-  },
-  write_config => sub { },
-};
-bless $config, "App::EventStreamr::Config";
+open(my $fh, '>', '/tmp/config.json');
+
+print $fh '{"run":"1","control":{"ping":{"run":"1"}}}';
+close $fh;
+
+my $config = App::EventStreamr::Config->new(
+  config_path => '/tmp',
+);
 
 my $proc = Test::App::EventStreamr::Process->new(
   cmd => $command,
@@ -62,3 +61,5 @@ TODO: {
   is($count < 20, 1, "Threshold reached correctly in $count iterations");
 }
 
+unlink('/tmp/config.json');
+isnt( ( -e "/tmp/config.json" ),1 ,"Temp Config Removed" );

@@ -116,6 +116,19 @@ method run() {
       $self->_processes->{$key}->run_stop();
     }
     sleep 1;
+
+    # Once a loop is completed the devices will have been
+    # stopped.
+    # TODO: Do this better.
+    if ($self->config->run == 2) {
+      foreach my $key (keys %{$self->_processes}) {
+        if ( $self->_processes->{$key}->type() ne "internal" ) {
+          $self->info("Stopping: ".$self->_processes->{$key}->id());
+          $self->_processes->{$key}->stop();
+        }
+      }
+      $self->config->run('1');
+    }
   }
 }
 
