@@ -31,4 +31,9 @@ method _run() {
   return 1;
 }
 
+# And we shouldn't be restarted
+method _restart() {
+  return 0;
+}
+
 1;
