@@ -123,9 +123,9 @@ post '/command/:command' => sub {
     # Individual Devices
     info("Setting $command for $data->{id}");
     given ($command) {
-      when ("stop")     { $self->{config}{device_control}{$data->{id}}{run} = 0; }
-      when ("start")    { $self->{config}{device_control}{$data->{id}}{run} = 1; }
-      when ("restart")  { $self->{config}{device_control}{$data->{id}}{run} = 2; }
+      when ("stop")     { $self->{config}{control}{$data->{id}}{run} = 0; }
+      when ("start")    { $self->{config}{control}{$data->{id}}{run} = 1; }
+      when ("restart")  { $self->{config}{control}{$data->{id}}{run} = 2; }
       default { header 'Access-Control-Allow-Origin' => '*'; status '400'; return qq("status":"unkown command"}); }
     }
   }
