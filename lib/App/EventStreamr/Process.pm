@@ -61,8 +61,6 @@ method _run() {
 method _restart() {
   if (defined $self->{config}{control}{$self->{id}}{run} && $self->{config}{control}{$self->{id}}{run} == 2) {
     return 1;
-  } elsif ($self->{config}{run} == 2) {
-    return 1;
   } else {
     return 0;
   }
