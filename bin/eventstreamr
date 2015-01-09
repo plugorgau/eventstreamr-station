@@ -80,6 +80,16 @@ my $getopts_rc = GetOptions(
   "help|?"        => \&print_usage,
 );
 
+# daemonize
+# TODO: Fix File Descripter issue when initialising logs before daemonizing
+my $daemon = Proc::Daemon->new(
+  work_dir => "$ENV{HOME}/.eventstreamr/",
+);
+
+if ( $DAEMON ) {
+  $daemon->Init();
+}
+
 my $eventstreamr = App::EventStreamr->new(
   debug => $DEBUG,
 );
@@ -181,8 +191,9 @@ sub sig_pipe {
   print "Caught Pipe\n";
 }
 
-chdir($eventstreamr->config->config_path) or $eventstreamr->error("Couldn't change working dir to ".$eventstreamr->config->config_path);
 # set umask
 umask 0027;
+
+chdir($eventstreamr->config->config_path) or $eventstreamr->error("Couldn't change working dir to ".$eventstreamr->config->config_path);
 
 $eventstreamr->run();
