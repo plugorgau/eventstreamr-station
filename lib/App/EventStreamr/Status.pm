@@ -43,6 +43,15 @@ method starting($id,$type) {
   $self->post_status();
 }
 
+method waiting($id,$type,$status) {
+  # TODO: Logging here once log role exists
+  $self->{status}{$id}{status} = $status;
+  $self->{status}{$id}{state} = "wait";
+  $self->{status}{$id}{type} = $type;
+  $self->{status}{$id}{id} = $id;
+  $self->post_status();
+}
+
 method stopping($id,$type) {
   # TODO: Logging here once log role exists
   $self->{status}{$id}{status} = "stopping";
