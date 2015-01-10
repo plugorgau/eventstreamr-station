@@ -38,4 +38,6 @@ method _build_cmd() {
   return $command;
 }
 
+with('App::EventStreamr::DVswitch::Roles::MixerWait');
+
 1;

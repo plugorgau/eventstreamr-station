@@ -65,6 +65,9 @@ has 'localconfig' => (
   handles => [ qw( create write config ) ],
 );
 
+# DVswitch Checking - Probably better somewhere else
+has 'dvswitch_running'  => ( is => 'rw', default => sub { '0' } );
+
 sub BUILD {
   my $self = shift;
   $self->_load_config;

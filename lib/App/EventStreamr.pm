@@ -128,6 +128,7 @@ method run() {
         }
       }
       $self->config->run('1');
+      $self->config->dvswitch_running('0');
     }
   }
 }
