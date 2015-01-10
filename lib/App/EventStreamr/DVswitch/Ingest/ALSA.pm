@@ -28,7 +28,7 @@ has 'type'        => ( is => 'ro', default => sub { 'ingest' } );
 
 method _build_card() {
   $self->config->update_devices();
-  return $self->config->{available_devices}{alsa}{$id}{alsa};
+  return $self->config->{available_devices}{alsa}{$self->id}{alsa};
 }
 
 method _build_cmd() {
