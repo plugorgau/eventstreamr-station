@@ -22,14 +22,20 @@ extends 'App::EventStreamr::Process';
 
 has 'cmd'         => ( is => 'ro', lazy => 1, builder => 1 );
 has 'id'          => ( is => 'ro', required => 1 );
-has 'device'      => ( is => 'ro', required => 1 );
+has 'device'      => ( is => 'rw', required => 1 );
+has 'card'        => ( is => 'rw', lazy => 1, builder => 1 );
 has 'type'        => ( is => 'ro', default => sub { 'ingest' } );
+
+method _build_card() {
+  $self->config->update_devices();
+  return $self->config->{available_devices}{alsa}{$id}{alsa};
+}
 
 method _build_cmd() {
   my $command = $self->{config}{commands}{alsa} ? $self->{config}{commands}{alsa} : 'dvsource-alsa -h $host -p $port hw:$device';
   
   my %cmd_vars =  (
-    device  => $self->device,
+    device  => $self->card,
     host    => $self->{config}{mixer}{host},
     port    => $self->{config}{mixer}{port},
   );
