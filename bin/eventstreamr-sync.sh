@@ -13,7 +13,7 @@ while true; do
     # don't run too frequently: rsync blips the CPU
     sleep 60
 
-    DATE=`date +%Y%m%d`
+    DATE=`date +%Y-%m-%d`
     RECORD_PATH="${RECORD_BASE}"
     
     if [ -z "${ROOM}" ]; then
