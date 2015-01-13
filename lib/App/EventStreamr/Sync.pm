@@ -38,7 +38,8 @@ method _build_cmd() {
 
   $self->{status}{$self->{id}}{record_path} =~ s/\$(\w+)/$cmd_vars{$1}/g;
 
-  return "eventstreamr-sync.sh $self->{status}{$self->{id}}{record_path} $self->{config}{sync}{host} $self->{config}{sync}{path} $self->{config}{room}";
+  # ... yucky
+  return "eventstreamr-sync.sh $self->{status}{$self->{id}}{record_path} $self->{config}{sync}{host} $self->{config}{sync}{path} $self->{config}{room} $self->{status}{$self->{id}}{date}";
 }
 
 1;

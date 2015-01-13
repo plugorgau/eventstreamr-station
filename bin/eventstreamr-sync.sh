@@ -6,6 +6,7 @@ RECORD_BASE=$1
 STORAGE_SERVER=$2
 STORAGE_BASE=$3
 ROOM=$4
+DATE=$5
 
 RATE_LIMIT_KBPS="10240"
 
@@ -13,7 +14,6 @@ while true; do
     # don't run too frequently: rsync blips the CPU
     sleep 60
 
-    DATE=`date +%Y-%m-%d`
     RECORD_PATH="${RECORD_BASE}"
     
     if [ -z "${ROOM}" ]; then
