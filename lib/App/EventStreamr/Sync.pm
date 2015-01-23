@@ -25,7 +25,7 @@ has 'cmd'         => ( is => 'ro', lazy => 1, builder => 1 );
 has 'id'          => ( is => 'ro', default => sub { 'sync' } );
 has 'type'        => ( is => 'ro', default => sub { 'sync' } );
 
-# TODO: This is horrible, we handle this stuff in a terrible way.
+# TODO: This is horrible, we handle date stuff in a terrible way.
 method _build_cmd() {
   $self->{status}{$self->{id}}{date} = strftime "%Y-%m-%d", localtime;
 
@@ -38,7 +38,7 @@ method _build_cmd() {
 
   $self->{status}{$self->{id}}{record_path} =~ s/\$(\w+)/$cmd_vars{$1}/g;
 
-  # ... yucky
+  # TODO: ... yucky. Improve this
   return "eventstreamr-sync.sh $self->{status}{$self->{id}}{record_path} $self->{config}{sync}{host} $self->{config}{sync}{path} $self->{config}{room} $self->{status}{$self->{id}}{date}";
 }
 
