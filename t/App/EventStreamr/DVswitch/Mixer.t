@@ -35,4 +35,6 @@ SKIP: {
   )->run_tests();
 }
 
+unlink('/tmp/config.json');
+
 done_testing();
