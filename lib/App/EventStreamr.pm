@@ -163,6 +163,14 @@ comes with quite a dependency chain, so feel free to submit pull
 request with code + explanation of what you are trying to achieve 
 and I will test and likely implement them.
 
+=head1 Known Issues
+
+Daemon dies when alsa device isn't present on start - L<https://github.com/plugorgau/eventstreamr-station/issues/54>
+Workaround: Ensure all configured ALSA devices are plugged in on boot
+
+Correctly Restart on Date Change - L<https://github.com/plugorgau/eventstreamr-station/issues/18>
+Workaround: Reboot or Restart the EventStreamr Daemon (pressing update from the controller will restart it)
+
 =cut
 
 1;

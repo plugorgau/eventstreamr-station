@@ -45,7 +45,7 @@ sub all {
 }
 
 sub v4l {
-  my @v4ldevices = </dev/video*>;
+  my @v4ldevices = glob "/dev/video*";
   my $v4l_devices;
   foreach my $device (@v4ldevices) {
     $device =~ m/\/dev\/(?<index>.+)/;
@@ -60,7 +60,7 @@ sub v4l {
 }
 
 sub dv {
-  my @dvs = </sys/bus/firewire/devices/*>;
+  my @dvs =  glob "/sys/bus/firewire/devices/*";
   my $dv_devices;
 
   foreach my $dv (@dvs) {
@@ -121,7 +121,7 @@ sub get_v4l_name {
 
   # Find USB
   my $index = $+{index};
-  my @usbs = </dev/v4l/by-id/*>;
+  my @usbs = glob "/dev/v4l/by-id/*";
   foreach my $usb (@usbs) {
     if ( realpath($usb) =~ /$index/ ) {
       $usb =~ m/\/dev\/v4l\/by-id\/usb-(?<name> .+)-video-index\d/ix;
@@ -138,7 +138,7 @@ sub get_v4l_name {
   }
   # Find PCI
   unless ($name) {
-    my @pcis = </dev/v4l/by-path/*>;
+    my @pcis = glob "/dev/v4l/by-path/*";
     foreach my $pci (@pcis) {
       if ( realpath($pci) =~ /$index/ ) {
         $pci =~ m/pci-[^+s]{4}:(?<pciid>..:..\..)-video-index\d/ix;
