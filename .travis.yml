@@ -22,6 +22,6 @@ install:
 #  - cpanm --quiet --notest Devel::Cover::Report::Coveralls
 #  - cpanm --quiet --notest Dist::Zilla::App::Command::cover
 script:
-  - dzil test
+  - prove -lv t/App/EventStreamr/Roles/ProcessControl.t
 #after_success:
 #  - dzil cover -outputdir cover_db -report coveralls
