@@ -40,8 +40,10 @@ TODO: {
   subtest 'State Changes' => sub {
     is($status->set_state($proc->running,$proc->{id},$proc->{type}), 0, "State not changed");
     $proc->start();
+    sleep 1;
     is($status->set_state($proc->running,$proc->{id},$proc->{type}), 1, "State changed");
     $proc->stop();
+    sleep 1;
   };
   
   $proc = Test::App::EventStreamr::Process->new(
