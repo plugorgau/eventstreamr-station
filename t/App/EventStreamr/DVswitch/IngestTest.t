@@ -29,53 +29,50 @@ my $proc = App::EventStreamr::Ingest->new(
   status => $status,
 );
 
-TODO: {
-  local $TODO = "Process tests broken with Travis" if ($ENV{TRAVIS});
+subtest 'Instantiation' => sub {
+  can_ok($proc, qw(run_stop));
+};
 
-  subtest 'Instantiation' => sub {
-    can_ok($proc, qw(run_stop));
-  };
+subtest 'Start/Stop' => sub {
+  $proc->start();
+  sleep 1;
+  is($proc->_devices->{$id}->running, 1, "Process was Started");
   
-  subtest 'Start/Stop' => sub {
-    $proc->start();
-    sleep 1;
-    is($proc->_devices->{$id}->running, 1, "Process was Started");
-    
-    $proc->stop();
-    sleep 1;
-    isnt($proc->_devices->{$id}->running, 1, "Process was Stop");
-  };
-  
-  subtest 'Run Stop Starting' => sub {
-    $proc->run_stop();
-    sleep 1;
-  
-    is($proc->_devices->{$id}->running, 1, "Process was Started");
-  };
-  
-  $config->{control}{ping}{run} = 0;
-  subtest 'Run Stop Stopping' => sub {
-    $proc->run_stop();
-  
-    sleep 1;
-    isnt($proc->_devices->{$id}->running, 1, "Process was Stopped");
-  };
-  
-  $config->{control}{ping}{run} = 2;
-  subtest 'Run Stop Restarting' => sub {
-    $proc->run_stop();
-    $proc->run_stop();
-  
-    sleep 1;
-    is($proc->_devices->{$id}->running, 1, "Process was Restarted");
-  };
-  
-  subtest 'Cleanup' => sub {
-    $proc->stop();
-    sleep 1;
-    isnt($proc->_devices->{$id}->running, 1, "Process was Stopped");
-  
-    unlink('/tmp/config.json');
-    isnt( ( -e "/tmp/config.json" ),1 ,"Temp Config Removed" );
-  };
-}
+  $proc->stop();
+  sleep 1;
+  isnt($proc->_devices->{$id}->running, 1, "Process was Stop");
+};
+
+subtest 'Run Stop Starting' => sub {
+  $proc->run_stop();
+  sleep 1;
+
+  is($proc->_devices->{$id}->running, 1, "Process was Started");
+};
+
+$config->{control}{ping}{run} = 0;
+subtest 'Run Stop Stopping' => sub {
+  $proc->run_stop();
+
+  sleep 1;
+  isnt($proc->_devices->{$id}->running, 1, "Process was Stopped");
+};
+
+$config->{control}{ping}{run} = 2;
+subtest 'Run Stop Restarting' => sub {
+  $proc->run_stop();
+  $proc->run_stop();
+
+  sleep 1;
+  is($proc->_devices->{$id}->running, 1, "Process was Restarted");
+};
+
+subtest 'Cleanup' => sub {
+  $proc->stop();
+  sleep 1;
+  isnt($proc->_devices->{$id}->running, 1, "Process was Stopped");
+
+  unlink('/tmp/config.json');
+  isnt( ( -e "/tmp/config.json" ),1 ,"Temp Config Removed" );
+};
+
