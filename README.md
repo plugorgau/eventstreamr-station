@@ -1,5 +1,3 @@
-NOTE: This repository is in a state of flux. It's being cleaned up for a re-factor.
-
 eventstreamr [![Build Status](https://api.travis-ci.org/plugorgau/eventstreamr-station.svg?branch=master)](https://travis-ci.org/plugorgau/eventstreamr) [![Coverage Status](https://coveralls.io/repos/plugorgau/eventstreamr-station/badge.svg?branch=master)](https://coveralls.io/r/plugorgau/eventstreamr-station?branch=master)
 ============
 
