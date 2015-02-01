@@ -38,14 +38,17 @@ TODO: {
   
   subtest 'Start/Stop' => sub {
     $proc->start();
+    sleep 1;
     is($proc->_devices->{$id}->running, 1, "Process was Started");
     
     $proc->stop();
+    sleep 1;
     isnt($proc->_devices->{$id}->running, 1, "Process was Stop");
   };
   
   subtest 'Run Stop Starting' => sub {
     $proc->run_stop();
+    sleep 1;
   
     is($proc->_devices->{$id}->running, 1, "Process was Started");
   };
@@ -54,6 +57,7 @@ TODO: {
   subtest 'Run Stop Stopping' => sub {
     $proc->run_stop();
   
+    sleep 1;
     isnt($proc->_devices->{$id}->running, 1, "Process was Stopped");
   };
   
@@ -62,11 +66,13 @@ TODO: {
     $proc->run_stop();
     $proc->run_stop();
   
+    sleep 1;
     is($proc->_devices->{$id}->running, 1, "Process was Restarted");
   };
   
   subtest 'Cleanup' => sub {
     $proc->stop();
+    sleep 1;
     isnt($proc->_devices->{$id}->running, 1, "Process was Stopped");
   
     unlink('/tmp/config.json');
