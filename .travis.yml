@@ -23,6 +23,6 @@ install:
 #  - cpanm --quiet --notest Dist::Zilla::App::Command::cover
   - cpanm --quiet --notest --skip-satisfied Proc::ProcessTable Test::More Test::Warnings Method::Signatures Proc::Daemon Log::Log4perl Scalar::Util::Reftype Carp namespace::clean Sys::Hostname experimental Config::JSON File::Path Moo File::Slurp Hash::Merge::Simple
 script:
-  - prove -lv t/App/EventStreamr/Process.t
+  - prove -lv t/App/EventStreamr/DVswitch/IngestTest.t
 #after_success:
 #  - dzil cover -outputdir cover_db -report coveralls
