@@ -24,7 +24,7 @@ install:
 script:
   - ifconfig
   - cat /etc/hosts
-  - perl bin/travis_test.pl
+  - bin/travis_test.pl
   - ping -c 10 localhost &
   - ping -c 10 127.0.0.1 &
   - ps waux|grep ping
