@@ -14,21 +14,14 @@ before_install:
   - "sh -e /etc/init.d/xvfb start"
 install:
   # Deal with all of the DZIL dependancies, quickly and quietly
-#  - cpanm --quiet --notest --skip-satisfied Dist::Zilla
-#  - dzil authordeps | grep -vP '[^\w:]' | xargs -n 5 -P 10 cpanm --quiet --notest --skip-satisfied
-#  - dzil listdeps | grep -vP '[^\w:]' |  xargs -n 5 -P 10 cpanm --quiet --notest --skip-satisfied
-#  - cpanm --quiet --notest --skip-satisfied Test::Perl::Critic
+  - cpanm --quiet --notest --skip-satisfied Dist::Zilla
+  - dzil authordeps | grep -vP '[^\w:]' | xargs -n 5 -P 10 cpanm --quiet --notest --skip-satisfied
+  - dzil listdeps | grep -vP '[^\w:]' |  xargs -n 5 -P 10 cpanm --quiet --notest --skip-satisfied
+  - cpanm --quiet --notest --skip-satisfied Test::Perl::Critic
 #  - sudo apt-get install aspell moreutils
 #  - cpanm --quiet --notest Devel::Cover::Report::Coveralls
 #  - cpanm --quiet --notest Dist::Zilla::App::Command::cover
-  - cpanm --quiet --notest --skip-satisfied Proc::Daemon Proc::ProcessTable Data::Dumper
 script:
-  - ifconfig
-  - cat /etc/hosts
-  - bin/travis_test.pl
-  - ping -c 10 localhost &
-  - ping -c 10 127.0.0.1 &
-  - ps waux|grep ping
-#  - dzil test
+  - dzil test
 #after_success:
 #  - dzil cover -outputdir cover_db -report coveralls
