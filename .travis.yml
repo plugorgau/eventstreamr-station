@@ -21,7 +21,7 @@ install:
 #  - sudo apt-get install aspell moreutils
 #  - cpanm --quiet --notest Devel::Cover::Report::Coveralls
 #  - cpanm --quiet --notest Dist::Zilla::App::Command::cover
-  - cpanm --quiet --notest --skip-satisfied Proc::ProcessTable Test::More Test::Warnings Method::Signatures Proc::Daemon Log::Log4perl Scalar::Util::Reftype Carp namespace::clean Sys::Hostname experimental Config::JSON File::Path Moo
+  - cpanm --quiet --notest --skip-satisfied Proc::ProcessTable Test::More Test::Warnings Method::Signatures Proc::Daemon Log::Log4perl Scalar::Util::Reftype Carp namespace::clean Sys::Hostname experimental Config::JSON File::Path Moo File::Slurp
 script:
   - prove -lv t/App/EventStreamr/Process.t
 #after_success:
