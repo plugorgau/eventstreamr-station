@@ -46,4 +46,6 @@ method _build_cmd_regex() {
     return qr:ffmpeg2theora.+--title.$self->{config}{stream}{stream}.+:;
 }
 
+with('App::EventStreamr::DVswitch::Roles::MixerWait');
+
 1;
