@@ -1,4 +1,7 @@
 {{$NEXT}}
 
+0.4       2015-04-14 16:54:52+08:00 Australia/Perth
+          Bug fix - Missing 'MixerWait' for streaming process
+
 0.3       2015-03-25 20:00:41WST+0800 Australia/Perth
-      Add IceCast Streaming Capability
+          Add IceCast Streaming Capability
