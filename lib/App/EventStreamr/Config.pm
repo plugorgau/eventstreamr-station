@@ -35,7 +35,8 @@ has 'record_path'   => ( is => 'rw', lazy => 1, default => sub { '/tmp/$room/$da
 has 'run'           => ( is => 'rw', lazy => 1, default => sub { '0' } );
 has 'control'       => ( is => 'rw' );
 has 'stream'        => ( is => 'rw' );
-has 'sync'        => ( is => 'rw' );
+has 'youtube'       => ( is => 'rw' );
+has 'sync'          => ( is => 'rw' );
 has 'pid'           => ( is => 'ro', lazy => 1, builder => 1);
 has 'log_level'     => ( is => 'ro', default => sub { 'INFO, LOG1' } );
 has 'mixer'         => ( 
@@ -148,6 +149,7 @@ method _clean_config() {
     backend => $self->backend,
     roles => $self->roles,
     stream => $self->stream,
+    youtube => $self->youtube,
     sync => $self->sync,
     mixer => $self->mixer,
     control => $self->control,
