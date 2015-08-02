@@ -1,4 +1,4 @@
-package App::EventStreamr::DVswitch::YouTube;
+package App::EventStreamr::DVswitch::Youtube;
 use Method::Signatures;
 use Moo;
 use namespace::clean;
@@ -36,14 +36,14 @@ method _build_avlib() {
 }
 
 method _build_cmd() {
-  my $command = 'dvsink-command -h $host -p $port -- '.$self->avlib.' -i - -deinterlace -vcodec libx264 -pix_fmt yuv420p -vf scale=-1:480 -preset $quality -r $fps -g $gop -b:v $bitrate -acodec libmp3lame -ar 44100 -threads 6 -qscale 3 -b:a 712000 -bufsize 512k -f flv "$url/$key"';
+  my $command = 'dvsink-command -h $host -p $port -- '.$self->avlib.' -i - -deinterlace -vcodec libx264 -pix_fmt yuv420p -vf scale=-1:480 -preset $preset -r $fps -g $gop -b:v $bitrate -acodec libmp3lame -ar 44100 -threads 6 -qscale 3 -b:a 256000 -bufsize 512k -f flv "$url/$key"';
 
   my $gop = ($self->{config}{youtube}{fps} * 2);
 
   my %cmd_vars = (
                   host      => $self->{config}{mixer}{host},
                   port      => $self->{config}{mixer}{port},
-                  quality   => $self->{config}{youtube}{quality},
+                  preset    => $self->{config}{youtube}{preset},
                   fps       => $self->{config}{youtube}{fps},
                   gop       => $gop,
                   bitrate   => $self->{config}{youtube}{bitrate},
