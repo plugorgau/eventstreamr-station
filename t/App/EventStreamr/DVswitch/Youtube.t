@@ -29,15 +29,11 @@ use Test::Warnings ':no_end_test';
     status => $status,
   );
   
-  use Data::Dumper;
-  
   is(
     $proc->cmd, 
     'dvsink-command -h 127.0.0.1 -p 1234 -- '.$proc->avlib.' -i - -deinterlace -vcodec libx264 -pix_fmt yuv420p -vf scale=-1:480 -preset medium -r 25 -g 50 -b:v 2500k -acodec libmp3lame -ar 44100 -threads 6 -qscale 3 -b:a 256000 -bufsize 512k -f flv "rtmp://a.rtmp.youtube.com/live2/streaming.key"', 
     "Stream Command built"
   );
-  
-  print Dumper($proc);
   
   like($proc->cmd, $proc->cmd_regex, "Command Regex Correct" );
 }
