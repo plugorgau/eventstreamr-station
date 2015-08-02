@@ -1,5 +1,6 @@
 {{$NEXT}}
           Bug Fix - Crash on boot with missing ALSA device #54
+          Add YouTube Streaming Capability #80
 
 0.4       2015-04-14 16:54:52+08:00 Australia/Perth
           Bug fix - Missing 'MixerWait' for streaming process
