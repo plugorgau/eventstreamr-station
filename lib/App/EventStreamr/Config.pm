@@ -149,6 +149,7 @@ method _clean_config() {
     backend => $self->backend,
     roles => $self->roles,
     stream => $self->stream,
+    youtube => $self->youtube,
     sync => $self->sync,
     mixer => $self->mixer,
     control => $self->control,
