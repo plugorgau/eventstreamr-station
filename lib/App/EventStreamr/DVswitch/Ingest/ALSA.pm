@@ -23,7 +23,7 @@ extends 'App::EventStreamr::Process';
 has 'cmd'         => ( is => 'ro', lazy => 1, builder => 1 );
 has 'id'          => ( is => 'ro', required => 1 );
 has 'device'      => ( is => 'rw', required => 1 );
-has 'card'        => ( is => 'rw', lazy => 1, builder => 1 );
+has 'card'        => ( is => 'rw', lazy => 1, builder => 1, clearer => 'clear_card' );
 has 'type'        => ( is => 'ro', default => sub { 'ingest' } );
 
 method _build_card() {
@@ -43,6 +43,20 @@ method _build_cmd() {
   $command =~ s/\$(\w+)/$cmd_vars{$1}/g;
   return $command;
 }
+
+around [qw(stop start run_stop)] => sub {
+  my $orig = shift;
+  my $self = shift;
+  
+  # We don't want to hand over an unitialised variable
+  # If the alsa device isn't present.
+  if ( $self->card ) {
+    $orig->($self);
+  } else {
+    $self->clear_card;
+    return;
+  }
+};
 
 with('App::EventStreamr::DVswitch::Roles::MixerWait');
 
